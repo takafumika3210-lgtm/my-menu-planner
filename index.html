@@ -585,23 +585,42 @@
         }
 
 
-        // --- 3. API接続のコア（指数バックオフ＆フォールバック） ---
+        // --- 修正版：GASサーバー経由の通信コア ---
         
-        async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 5, delay = 1000) {
-            const userKey = localStorage.getItem("gemini_user_api_key") || apiKey;
+async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 5, delay = 1000) {
+    // 【重要】先ほど作成したGASのウェブアプリURLをここに設定
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzZHiGnmmJU0D1lrAN9Iv5D_zKYb34w2dX_c7p-udQxPbaVt_GNlo5VYIE6BLt5D890Ag/exec";
+    
+    // GAS側へ送るためのデータ構造を構築
+    const payload = {
+        prompt: prompt,
+        systemInstruction: systemInstruction,
+        // スキーマもGAS側に伝えて、AIからの返答を制御させる
+        schema: schema 
+    };
+
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(GAS_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                return await response.json();
+            }
             
-            // 2026年Canvasプレビュー環境で最適化された高速安定モデルを使用
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${userKey}`;
+            console.warn(`通信試行 ${i + 1} 失敗。自動再試行中...`);
             
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: { parts: [{ text: systemInstruction }] },
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: schema,
-                    temperature: 0.7
-                }
-            };
+        } catch (e) {
+            if (i === retries - 1) throw e;
+        }
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay *= 2;
+    }
+    throw new Error("GASサーバーへのリクエストがタイムアウトしました。");
+}
 
             for (let i = 0; i < retries; i++) {
                 try {
