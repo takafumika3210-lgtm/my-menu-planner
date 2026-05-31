@@ -1,12 +1,303 @@
-// APIキープレースホルダー（絶対ルール）
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍳 おうちの献立ノート - わが家のごはんルーティン</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #FAF8F5; /* やさしいアイボリー */
+            color: #3D3A45; /* 柔らかいダークブラウン */
+        }
+        
+        .font-handwriting {
+            font-family: 'Kiwi Maru', sans-serif;
+        }
+
+        /* 優しい質感のカード */
+        .soft-card {
+            box-shadow: 0 10px 25px -5px rgba(224, 122, 95, 0.04), 0 8px 10px -6px rgba(224, 122, 95, 0.04);
+            border: 1px solid #F1ECE6;
+        }
+
+        /* 買い物リストの打ち消し線 */
+        .checked-item {
+            text-decoration: line-through;
+            color: #A9A5A0;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        /* トグルアニメーション */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .accordion-open {
+            max-height: 1200px; /* レシピが収まる十分な高さ */
+            transition: max-height 0.5s ease-in;
+        }
+
+        /* ふわっと浮かび上がるトランジション */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+    <header class="bg-white border-b border-[#F1ECE6] sticky top-0 z-30 shadow-sm shadow-[#FAF8F5]/80">
+        <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <div class="bg-[#F4A261]/10 text-[#E07A5F] w-10 h-10 flex items-center justify-center rounded-2xl">
+                    <i class="fa-solid fa-cookie-bite text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-[#3D3A45] tracking-wide font-handwriting">おうちの献立ノート</h1>
+                    <p class="text-[10px] text-[#A9A5A0] font-medium">基本パターンと献立をしっかり記憶するマイノート</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-1">
+                <button id="btn-reset-all" class="text-xs text-[#A9A5A0] hover:text-red-500 px-2.5 py-1.5 rounded-xl hover:bg-red-50 transition font-bold" title="すべてのデータを消去">
+                    <i class="fa-solid fa-trash-can mr-1"></i>初期化
+                </button>
+                <button id="btn-toggle-config" class="text-[#A9A5A0] hover:text-[#E07A5F] w-8 h-8 rounded-full hover:bg-[#FAF8F5] flex items-center justify-center transition" title="APIキー設定">
+                    <i class="fa-solid fa-sliders"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 py-6 space-y-6">
+
+        <div id="config-panel" class="hidden bg-white rounded-2xl p-5 border border-[#F1ECE6] soft-card space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#3D3A45]"><i class="fa-solid fa-key mr-1.5 text-[#E07A5F]"></i>Gemini APIキーの個別設定</span>
+                <span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold">デバッグ用</span>
+            </div>
+            <p class="text-xs text-[#A9A5A0] leading-relaxed">
+                通常は自動接続されますが、通信に失敗する場合はご自身のAPIキーを入力して「保存」を押してください。
+            </p>
+            <div class="flex gap-2">
+                <input type="password" id="input-api-key" class="flex-1 text-xs rounded-xl border-[#F1ECE6] border p-2.5 focus:ring-1 focus:ring-[#E07A5F] focus:border-[#E07A5F] outline-none" placeholder="AIzaSy...">
+                <button id="btn-save-key" class="bg-[#E07A5F] hover:bg-[#D06B50] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">保存</button>
+                <button id="btn-clear-key" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-3 py-2.5 rounded-xl transition">消去</button>
+            </div>
+        </div>
+
+        <section class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-4">
+            <div class="flex items-center justify-between border-b border-[#FAF8F5] pb-3">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">📅</span>
+                    <h2 class="font-bold text-sm tracking-wide text-[#3D3A45]">わが家の「曜日別」基本パターン</h2>
+                </div>
+                <span class="text-[10px] bg-[#81B29A]/10 text-[#4A735E] px-2.5 py-1 rounded-full font-bold">自動で保存されます</span>
+            </div>
+            <p class="text-xs text-[#A9A5A0] leading-relaxed">
+                「月曜日は揚げ物、火曜日はうどん」など、わが家の定番ルールを登録しておけます。AIは必ずこのルールを守って1週間のメニューを提案します。
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-2">
+                <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
+                    <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">月曜日</span>
+                    <select id="pattern-mon" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
+                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
+                        <option value="お肉メイン（炒めもの、煮物など）" selected>🥩 お肉系</option>
+                        <option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option>
+                        <option value="麺類（うどん、パスタ、ラーメンなど）">🍜 麺類</option>
+                        <option value="カレー・シチュー・ハヤシライス系">🍛 カレー系</option>
+                        <option value="丼もの（親子丼、牛丼、中華丼など）">🍚 丼もの</option>
+                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
+                    </select>
+                </div>
+                <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
+                    <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">火曜日</span>
+                    <select id="pattern-tue" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
+                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
+                        <option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option>
+                        <option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option>
+                        <option value="麺類（うどん、パスタ、ラーメンなど）" selected>🍜 麺類</option>
+                        <option value="カレー・シチュー・ハヤシライス系">🍛 カレー系</option>
+                        <option value="丼もの（親子丼、牛丼、中華丼など）">🍚 丼もの</option>
+                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
+                    </select>
+                </div>
+                <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
+                    <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">水曜日</span>
+                    <select id="pattern-wed" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
+                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
+                        <option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option>
+                        <option value="お魚メイン（焼き魚、煮魚など）" selected>🐟 お魚系</option>
+                        <option value="麺類（うどん、パスタ、ラーメンなど）">🍜 麺類</option>
+                        <option value="カレー・シチュー・ハヤシライス系">🍛 カレー系</option>
+                        <option value="丼もの（親子丼、牛丼、中華丼など）">🍚 丼もの</option>
+                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
+                    </select>
+                </div>
+                <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
+                    <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">木曜日</span>
+                    <select id="pattern-thu" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
+                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
+                        <option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option>
+                        <option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option>
+                        <option value="麺類（うどん、パスタ、ラーメンなど）">🍜 麺類</option>
+                        <option value="カレー・シチュー・ハヤシライス系">🍛 カレー系</option>
+                        <option value="丼もの（親子丼、牛丼、中華丼など）" selected>🍚 丼もの</option>
+                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
+                    </select>
+                </div>
+                <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
+                    <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">金曜日</span>
+                    <select id="pattern-fri" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
+                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
+                        <option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option>
+                        <option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option>
+                        <option value="麺類（うどん、パスタ、ラーメンなど）">🍜 麺類</option>
+                        <option value="カレー・シチュー・ハヤシライス系" selected>🍛 カレー系</option>
+                        <option value="丼もの（親子丼、牛丼、中華丼など）">🍚 丼もの</option>
+                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section id="input-dashboard" class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-5">
+            <div class="flex items-center space-x-2">
+                <span class="text-lg">👩‍🍳</span>
+                <h2 class="font-bold text-sm tracking-wide text-[#3D3A45]">今週のわがままリクエスト</h2>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-[#A9A5A0]"><i class="fa-solid fa-basket-shopping mr-1 text-[#81B29A]"></i> 今週とくに優先して使いたい食材（複数選べます）</label>
+                <div class="flex flex-wrap gap-1.5" id="weekly-ingredients">
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="豚肉">🐷 豚肉</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="鶏肉">🐔 鶏肉</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="合い挽き肉">🥩 ひき肉</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="魚類">🐟 お魚類</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="キャベツ">🥬 キャベツ</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="玉ねぎ">🧅 玉ねぎ</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="じゃがいも">🥔 じゃがいも</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="豆腐">⬜ 豆腐</button>
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="weekly-free" class="block text-xs font-bold text-[#A9A5A0]"><i class="fa-solid fa-comment-dots mr-1 text-amber-500"></i> その他、アレルギー、子供の好き嫌いなどがあれば</label>
+                <input type="text" id="weekly-free" class="w-full text-xs rounded-xl border-[#F1ECE6] p-3 focus:ring-1 focus:ring-[#E07A5F] focus:border-[#E07A5F] outline-none bg-[#FAF8F5]/40 transition" placeholder="例：辛いものはNG、大根を消費したい、など">
+            </div>
+
+            <button id="btn-generate-week" class="w-full bg-[#E07A5F] hover:bg-[#D06B50] text-white font-bold py-4 px-4 rounded-2xl shadow-md shadow-[#E07A5F]/10 hover:shadow-lg transition duration-200 flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                <span class="font-handwriting tracking-wider text-sm">基本パターンに沿って献立を作る</span>
+            </button>
+        </section>
+
+        <section id="loader" class="hidden bg-white rounded-3xl p-10 border border-[#F1ECE6] soft-card text-center space-y-4">
+            <div class="relative w-14 h-14 mx-auto">
+                <div class="absolute inset-0 rounded-full border-4 border-[#FAF8F5]"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-t-[#E07A5F] animate-spin"></div>
+            </div>
+            <div class="space-y-1.5">
+                <p id="loader-status" class="font-bold text-sm text-[#3D3A45] font-handwriting">AI栄養士がノートに書き込んでいます...</p>
+                <div class="w-3/4 mx-auto bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div id="loader-bar" class="bg-[#81B29A] h-full w-0 transition-all duration-500"></div>
+                </div>
+                <p class="text-[10px] text-[#A9A5A0]">買い物リストと全曜日の簡単レシピを同時に構築しています。約10秒お待ちくださいね。</p>
+            </div>
+        </section>
+
+        <section id="results-area" class="hidden space-y-6 fade-in">
+
+            <div class="bg-gradient-to-r from-[#F4A261] to-[#E07A5F] rounded-3xl p-6 text-white shadow-sm flex items-start justify-between">
+                <div class="space-y-1">
+                    <span class="text-[9px] font-bold uppercase tracking-widest bg-white/20 px-2.5 py-0.5 rounded-full backdrop-blur-sm">Our Cooking Journal</span>
+                    <h3 id="res-weekly-theme" class="text-base font-bold font-handwriting pt-2">わが家の献立ノート</h3>
+                    <p id="res-weekly-focus" class="text-xs text-white/95 leading-relaxed mt-1.5">--</p>
+                </div>
+                <div class="hidden sm:block text-white/20 text-4xl pt-2">
+                    <i class="fa-solid fa-feather-pointed"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-1 border border-[#F1ECE6] soft-card flex">
+                <button id="tab-btn-menus" class="tab-trigger flex-1 py-3 text-xs font-bold text-center rounded-xl transition duration-200 tab-active bg-[#FAF8F5] text-[#E07A5F]">
+                    📅 1週間の献立とレシピ
+                </button>
+                <button id="tab-btn-shopping" class="tab-trigger flex-1 py-3 text-xs font-bold text-center text-[#A9A5A0] hover:text-[#3D3A45] rounded-xl transition duration-200">
+                    🛒 売り場順買い物リスト
+                </button>
+                <button id="tab-btn-hacks" class="tab-trigger flex-1 py-3 text-xs font-bold text-center text-[#A9A5A0] hover:text-[#3D3A45] rounded-xl transition duration-200">
+                    💡 お助け準備＆家族に送る
+                </button>
+            </div>
+
+            <div id="tab-content-menus" class="tab-panel space-y-5"></div>
+
+            <div id="tab-content-shopping" class="tab-panel hidden bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-5">
+                <div class="flex items-center justify-between border-b border-[#FAF8F5] pb-3">
+                    <div>
+                        <h4 class="font-bold text-sm text-[#3D3A45] flex items-center"><i class="fa-solid fa-cart-shopping text-[#81B29A] mr-2"></i>売り場順のお買い物リスト</h4>
+                        <p class="text-[10px] text-[#A9A5A0] mt-0.5">※曜日ごとの変更に合わせて、お買い物チェックリストも自動マージされます。</p>
+                    </div>
+                    <button id="btn-reset-shopping" class="text-[10px] font-bold text-[#A9A5A0] hover:text-[#E07A5F] border border-[#F1ECE6] px-3 py-2 rounded-xl transition bg-[#FAF8F5]">
+                        チェック全消去
+                    </button>
+                </div>
+                <div id="shopping-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+
+            <div id="tab-content-hacks" class="tab-panel hidden space-y-4">
+                <div class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-3">
+                    <div class="flex items-center space-x-2 border-b border-[#FAF8F5] pb-2">
+                        <span class="text-sm">💡</span>
+                        <h4 class="font-bold text-sm text-[#3D3A45]">今週のりきり下ごしらえハック</h4>
+                    </div>
+                    <p id="res-weekend-prep" class="text-xs text-[#6D6A75] leading-relaxed whitespace-pre-line bg-[#FAF8F5] p-4 rounded-2xl">--</p>
+                </div>
+
+                <div class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-brands fa-line text-emerald-500 text-xl"></i>
+                            <h4 class="font-bold text-sm text-[#3D3A45]">家族へ送るLINEメッセージ</h4>
+                        </div>
+                        <button id="btn-copy-line" class="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-2 rounded-xl font-bold transition flex items-center space-x-1.5">
+                            <i class="fa-regular fa-copy"></i>
+                            <span>コピーする</span>
+                        </button>
+                    </div>
+                    <textarea id="line-textarea" rows="8" class="w-full text-xs rounded-2xl border-[#F1ECE6] p-4 bg-[#FAF8F5]/40 focus:outline-none focus:ring-1 focus:ring-emerald-500" readonly></textarea>
+                    <span id="line-copy-toast" class="hidden text-[10px] text-emerald-600 font-bold block"><i class="fa-solid fa-circle-check"></i> コピーしました！そのままおうちのLINEグループに送れます。</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center text-[#A9A5A0] text-[10px] py-8 border-t border-[#F1ECE6]/60 mt-12">
+        <p>© 2026 おうちの献立ノート - Powered by Google Gemini 1.5 Structured Schema Pipeline</p>
+    </footer>
+
+    <script>
+        // APIキープレースホルダー（絶対ルール）
         const apiKey = "";
 
         // アプリケーション内の状態管理 (State)
-        let weeklyMenu = []; // 生成した曜日別のメニュー＆レシピデータを格納
+        let weeklyMenu = []; 
         let weeklyTheme = "";
         let nutritionFocus = "";
         let weekendPrep = "";
-        
         let selectedWeeklyIngredients = [];
 
         // 曜日別基本プランのセレクトボックスDOM
@@ -50,9 +341,9 @@
         function cleanJsonString(str) {
             if (!str) return "";
             return str
-                .replace(/^```json\s*/i, "") // 先頭の ```json を削除
-                .replace(/^```\s*/, "")      // 先頭の ``` を削除
-                .replace(/```$/, "")         // 末尾の ``` を削除
+                .replace(/^```json\s*/i, "") 
+                .replace(/^```\s*/, "")      
+                .replace(/```$/, "")         
                 .trim();
         }
 
@@ -140,7 +431,7 @@
                 weeklyFree.value = "";
                 inputApiKey.value = "";
                 
-                alert("ノートをまっさらな状態に初期化しました。");
+                alert("ノートをまっまっさらな状態に初期化しました。");
             }
         });
 
@@ -243,7 +534,7 @@
 
         // --- 3. API接続のコア（GAS経由に完全一本化） ---
         async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 5, delay = 1000) {
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbzZHiGnmmJU0D1lrAN9Iv5D_zKYb34w2dX_c7p-udQxPbaVt_GNlo5VYIE6BLt5D890Ag/exec";
+            const GAS_URL = "[https://script.google.com/macros/s/AKfycbzZHiGnmmJU0D1lrAN9Iv5D_zKYb34w2dX_c7p-udQxPbaVt_GNlo5VYIE6BLt5D890Ag/exec](https://script.google.com/macros/s/AKfycbzZHiGnmmJU0D1lrAN9Iv5D_zKYb34w2dX_c7p-udQxPbaVt_GNlo5VYIE6BLt5D890Ag/exec)";
             
             const payload = {
                 prompt: prompt,
@@ -355,7 +646,6 @@
                     throw new Error("AIからの応答が空でした。");
                 }
 
-                // 防衛策：マークダウンのコードブロックを除去してパース
                 const cleanedText = cleanJsonString(responseText);
                 const data = JSON.parse(cleanedText);
                 
@@ -433,7 +723,6 @@
             required: ["day_menu"]
         };
 
-        // 【バグ修正完了】特定の日だけ変更する実行処理
         async function reGenerateSingleDay(dayName, containerId) {
             const formContainer = document.getElementById(containerId);
             
@@ -463,7 +752,6 @@
 
             const existingDishes = weeklyMenu.filter(m => m.day !== dayName).map(m => m.main_dish).join("、");
 
-            // 存在しない変数参照（loaderTitle, loaderDesc）を、存在する loaderStatus へ一本化
             startLoaderAnimation(`${dayName}のごはんを新しく執筆中...`);
             loader.classList.remove("hidden");
             resultsArea.classList.add("hidden");
@@ -766,3 +1054,6 @@
             shareText += `💡 栄養士のアドバイス：${nutritionFocus}\n\n平日の調理はこれで楽ちんだね！`;
             lineTextarea.value = shareText;
         }
+    </script>
+</body>
+</html>
