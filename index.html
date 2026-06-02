@@ -641,6 +641,12 @@
 
             try {
                 const apiResponse = await fetchGeminiAPI(prompt, systemInstruction, weeklyResponseSchema);
+                
+                // 💡【割り込み】GAS側から安全なエラーレスポンスが返ってきた場合、即座にそれを暴く
+                if (apiResponse && apiResponse.error) {
+                    throw new Error(`【GASシステムエラー】${apiResponse.message || "詳細不明の内部エラー"}`);
+                }
+
                 const responseText = apiResponse.candidates?.[0]?.content?.parts?.[0]?.text;
                 
                 if (!responseText) {
@@ -768,6 +774,12 @@
 
             try {
                 const apiResponse = await fetchGeminiAPI(prompt, systemInstruction, singleDayResponseSchema);
+                
+                // 💡【割り込み】GAS側から安全なエラーレスポンスが返ってきた場合、即座にそれを暴く
+                if (apiResponse && apiResponse.error) {
+                    throw new Error(`【GASシステムエラー】${apiResponse.message || "詳細不明の内部エラー"}`);
+                }
+
                 const responseText = apiResponse.candidates?.[0]?.content?.parts?.[0]?.text;
                 
                 if (!responseText) {
