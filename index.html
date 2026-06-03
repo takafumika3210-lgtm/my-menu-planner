@@ -314,14 +314,16 @@
         const tabContentMenus = document.getElementById("tab-content-menus");
         const shoppingGrid = document.getElementById("shopping-grid");
 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzZHiGnmmJU0D1lrAN9Iv5D_zKYb34w2dX_c7p-udQxPbaVt_GNlo5VYIE6BLt5D890Ag/exec";
+
         let weeklyMenu = [];
         let weeklyTheme = "";
         let nutritionFocus = "";
         let weekendPrep = "";
         let selectedWeeklyIngredients = [];
 
-        // --- 2. 初期化と復元処理 ---
-        document.addEventListener("DOMContentLoaded", () => {
+        // --- 2. 💡【家族共有化デバッグ】ページ起動時の自動サーバー同期処理 ---
+        document.addEventListener("DOMContentLoaded", async () => {
             restoreWeeklyPatterns();
             
             // APIキーの個別設定の復元
@@ -359,7 +361,31 @@
                 });
             });
 
-            // 保存データの復元
+            // 💡【家族共有】スマホ等の別端末対応：GASサーバー（doGet）から最新献立データを最優先で自動復元
+            try {
+                const response = await fetch(GAS_URL);
+                if (response.ok) {
+                    const resJson = await response.json();
+                    if (resJson.status === "success" && resJson.data) {
+                        const serverData = resJson.data;
+                        weeklyMenu = serverData.menus || [];
+                        weeklyTheme = serverData.weekly_theme || "";
+                        nutritionFocus = serverData.nutrition_focus || "";
+                        weekendPrep = serverData.weekend_prep || "";
+                        
+                        if (weeklyMenu.length > 0) {
+                            renderAll();
+                            resultsArea.classList.remove("hidden");
+                            console.log("GAS共有データベースから最新ノートをロードしました。");
+                            return; // サーバー同期に成功した場合はここで処理を抜ける
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn("共有データベースからの自動同期に失敗しました。ローカルストレージからの復元を試みます。", err);
+            }
+
+            // サーバーにデータがない、またはオフライン時のフォールバック（従来のブラウザ内復元）
             const savedData = localStorage.getItem("gemini_saved_menu_data");
             if (savedData) {
                 try {
@@ -373,7 +399,7 @@
                         resultsArea.classList.remove("hidden");
                     }
                 } catch (e) {
-                    console.error("データの復元に失敗しました。", e);
+                    console.error("データのローカル復元に失敗しました。", e);
                 }
             }
         });
@@ -410,9 +436,9 @@
             }
         }
 
-        // 初期化ボタン
-        btnResetAll.addEventListener("click", () => {
-            if (confirm("おうちの献立ノート、基本パターン、およびお買い物リストの全履歴を完全に消去しますか？")) {
+        // 初期化ボタン（サーバー同期対応）
+        btnResetAll.addEventListener("click", async () => {
+            if (confirm("おうちの献立ノート、基本パターン、およびお買い物リストの全履歴を完全に消去しますか？（クラウド上の共有データも初期化されます）")) {
                 localStorage.removeItem("gemini_saved_menu_data");
                 localStorage.removeItem("gemini_weekly_patterns");
                 localStorage.removeItem("gemini_user_api_key");
@@ -421,16 +447,19 @@
                 weeklyTheme = "";
                 nutritionFocus = "";
                 weekendPrep = "";
-                resultsArea.classList.add("hidden");
-                tabContentMenus.innerHTML = "";
-                shoppingGrid.innerHTML = "";
-                patternMon.value = "お肉メイン（炒めもの、煮物など）";
-                patternTue.value = "麺類（うどん、パスタ、ラーメンなど）";
-                patternWed.value = "お魚メイン（焼き魚、煮魚など）";
-                patternThu.value = "丼もの（親子丼、牛丼、中華丼など）";
-                patternFri.value = "カレー・シチュー・ハヤシライス系";
-                saveWeeklyPatterns();
-                alert("マイノートをすべて初期化しました。");
+                
+                // 💡クラウド上の金庫データも物理的に消去要請
+                try {
+                    await fetch(GAS_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "text/plain" },
+                        body: JSON.stringify({ action: "save_db_menu", menuData: null })
+                    });
+                } catch(e) {
+                    console.error("クラウドデータの初期化に失敗しました。", e);
+                }
+
+                alert("マイノートと共有データベースを初期化しました。");
                 window.location.reload();
             }
         });
@@ -465,11 +494,8 @@
             loaderBar.style.width = "100%";
         }
 
-        // --- 3. API接続のコア（GAS経由に完全一本化） ---
+        // --- 3. API接続のコア（GAS経由中継） ---
         async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 5, delay = 1000) {
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbzZHiGnmmJU0D1lrAN9Iv5D_zKYb34w2dX_c7p-udQxPbaVt_GNlo5VYIE6BLt5D890Ag/exec";
-            
-            // もしユーザーの個別キーがあればリクエストにこっそり混ぜる（拡張性のための設計）
             const userKey = localStorage.getItem("gemini_user_api_key") || "";
             const payload = {
                 prompt: prompt,
@@ -499,7 +525,7 @@
             throw new Error("GASサーバーへのリクエストがタイムアウトしました。");
         }
 
-        // --- 4. 💡【小分け作戦デバッグ版】スキーマの2分割定義 ---
+        // --- 4. 💡【小分け作戦】スキーマの2分割定義 ---
         const weeklySkeletonSchema = {
             type: "OBJECT",
             properties: {
@@ -589,7 +615,6 @@
 
                 const skeletonResponse = await fetchGeminiAPI(skeletonPrompt, systemInstruction, weeklySkeletonSchema);
                 
-                // GAS側からの安全エラー割り込み検知
                 if (skeletonResponse && skeletonResponse.error) {
                     throw new Error(`【GASシステムエラー】${skeletonResponse.message || "内部エラー"}`);
                 }
@@ -653,7 +678,8 @@
                     weeklyMenu.push(completeDayMenu);
                 }
 
-                saveMenuDataToLocalStorage();
+                // 💡保存＆共有データベース同期処理の呼び出し
+                await saveMenuDataToLocalStorage();
 
                 stopLoaderAnimation();
                 renderAll();
@@ -673,17 +699,35 @@
             }
         });
 
-        function saveMenuDataToLocalStorage() {
+        // 💡【家族共有対応】ブラウザへの永続化と同時に、GAS共有プロパティへデータをリアルタイム同期送信
+        async function saveMenuDataToLocalStorage() {
             const dataToSave = {
                 menus: weeklyMenu,
                 weekly_theme: weeklyTheme,
                 nutrition_focus: nutritionFocus,
                 weekend_prep: weekendPrep
             };
+            
+            // 従来通りのローカルストレージ保存
             localStorage.setItem("gemini_saved_menu_data", JSON.stringify(dataToSave));
+
+            // GAS（家族共有用金庫）への同期送信
+            try {
+                await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify({
+                        action: "save_db_menu",
+                        menuData: dataToSave
+                    })
+                });
+                console.log("家族共有クラウドデータベースへのリアルタイム同期に成功しました。");
+            } catch (e) {
+                console.error("家族共有データベースへの自動アップロードに失敗しました。", e);
+            }
         }
 
-        // --- 6. 個別曜日変更のアクション（単一曜日リファクタリング版） ---
+        // --- 6. 個別曜日変更のアクション（単一曜日リファクタリング・共有データベース連動版） ---
         const singleDayResponseSchema = {
             type: "OBJECT",
             properties: {
@@ -722,7 +766,7 @@
             required: ["day_menu"]
         };
 
-        async function reGenerateSingleDay(dayName, idx) {
+        window.reGenerateSingleDay = async function(dayName, idx) {
             const changeInput = document.getElementById(`change-input-${idx}`);
             const reason = changeInput.value.trim();
             if (!reason) {
@@ -737,7 +781,7 @@
             const systemInstruction = "あなたは5人家族の献立を支えるプロの栄養士です。指定された曜日のメニューをリクエストに合わせて変更し、指定されたスネークケースのJSON構造でのみ返答してください。";
             
             const prompt = 
-                `【メニューの個別変更要請】\n` +
+                `【メニューの個別変更要親】\n` +
                 `対象の曜日: ${dayName}\n` +
                 `お母さんからの変更理由・要望: ${reason}\n\n` +
                 `現在の1週間の全体のバランスを壊さない範囲で、この曜日単体の新しい主菜・副菜・汁物・具体的なレシピ・売り場別の買い物リストを再構築してください。`;
@@ -758,10 +802,12 @@
                 const data = JSON.parse(cleanedText);
                 const newDayMenu = data.day_menu;
 
-                // 該当曜日だけを差し替え
+                // 該当曜日だけを精密に差し替え
                 weeklyMenu = weeklyMenu.map(m => m.day === dayName ? newDayMenu : m);
                 
-                saveMenuDataToLocalStorage();
+                // 💡変更結果をブラウザおよびクラウド共有DBへ強制上書き同期
+                await saveMenuDataToLocalStorage();
+                
                 stopLoaderAnimation();
                 renderAll();
 
@@ -774,7 +820,7 @@
                 resultsArea.classList.remove("hidden");
                 alert(`メニューの個別調整に失敗しました:\n${err.message}`);
             }
-        }
+        };
 
         // --- 7. 画面描画マッピングシステム ---
         function renderAll() {
@@ -801,7 +847,6 @@
                 card.className = "bg-white rounded-3xl border border-[#F1ECE6] p-5 soft-card space-y-4 fade-in";
                 card.id = dayCardId;
                 
-                // 材料と手順のHTML組み立て
                 let ingredientsHTML = "";
                 if (m.recipe && m.recipe.ingredients) {
                     m.recipe.ingredients.forEach(ing => {
@@ -873,7 +918,7 @@
                         <span class="text-[10px] font-bold text-[#A9A5A0] block pt-1">2. AIへの具体的な指示（自由入力）</span>
                         <div class="flex gap-2">
                             <input type="text" id="change-input-${idx}" class="flex-1 text-xs bg-white border border-[#F1ECE6] rounded-xl px-3 py-2 outline-none focus:border-[#E07A5F]" placeholder="例：月曜の残りの豚肉を使いたい / うどんをお蕎麦に変えて">
-                            <button class="bg-[#81B29A] hover:bg-[#6FA389] text-white text-xs font-bold px-4 py-2 rounded-xl transition" onclick="reGenerateSingleDay('${m.day}', ${idx})">変更</button>
+                            <button class="bg-[#81B29A] hover:bg-[#6FA389] text-white text-xs font-bold px-4 py-2 rounded-xl transition" onclick="window.reGenerateSingleDay('${m.day}', ${idx})">変更</button>
                         </div>
                     </div>
 
@@ -890,7 +935,6 @@
             });
         }
 
-        // アコーディオン開閉トグル
         window.toggleAccordion = function(id, btn) {
             const content = document.getElementById(id);
             const icon = btn.querySelector("i");
@@ -909,7 +953,6 @@
             }
         };
 
-        // 単一曜日用タグ切り替え
         window.toggleTag = function(btn) {
             const input = btn.parentElement.parentElement.querySelector("input[type='text']");
             const val = btn.getAttribute("data-val");
@@ -930,7 +973,6 @@
                 "③ 豆腐・牛乳・調味料": []
             };
 
-            // 全曜日の買い物リストを統合・仕分け
             weeklyMenu.forEach(dayMenu => {
                 if (!dayMenu.day_shopping) return;
                 dayMenu.day_shopping.forEach(sectionBlock => {
@@ -952,7 +994,6 @@
                 });
             });
 
-            // 打ち消し状態の復元用
             const checkedItems = JSON.parse(localStorage.getItem("gemini_checked_items") || "{}");
 
             Object.keys(sections).forEach(secName => {
@@ -1011,7 +1052,6 @@
             lineTextarea.value = shareText;
         }
 
-        // LINEメッセージコピー
         btnCopyLine.addEventListener("click", () => {
             lineTextarea.select();
             document.execCommand("copy");
@@ -1028,7 +1068,6 @@
             }, 2000);
         });
 
-        // ユーティリティ: AIのMarkdown付きJSONから純粋な文字列を切り出す
         function cleanJsonString(str) {
             let cleaned = str.trim();
             if (cleaned.startsWith("```")) {
