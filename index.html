@@ -65,7 +65,7 @@
                 </div>
                 <div>
                     <h1 class="text-base font-bold text-[#3D3A45] tracking-wide font-handwriting">おうちの献立ノート</h1>
-                    <p class="text-[10px] text-[#A9A5A0] font-medium">基本パターンと献立をしっかり記憶するマイノート</p>
+                    <p class="text-[10px] text-[#A9A5A0] font-medium">曜日ごとにポチポチ作ってクラウドで繋がるマイノート</p>
                 </div>
             </div>
             
@@ -101,15 +101,12 @@
             <div class="flex items-center justify-between border-b border-[#FAF8F5] pb-3">
                 <div class="flex items-center space-x-2">
                     <span class="text-lg">📅</span>
-                    <h2 class="font-bold text-sm tracking-wide text-[#3D3A45]">わが家の「曜日別」基本パターン</h2>
+                    <h2 class="font-bold text-sm tracking-wide text-[#3D3A45]">わが家の「曜日別」基本パターン設定</h2>
                 </div>
-                <span class="text-[10px] bg-[#81B29A]/10 text-[#4A735E] px-2.5 py-1 rounded-full font-bold">自動で保存されます</span>
+                <span class="text-[10px] bg-[#81B29A]/10 text-[#4A735E] px-2.5 py-1 rounded-full font-bold">自動保存</span>
             </div>
-            <p class="text-xs text-[#A9A5A0] leading-relaxed">
-                「月曜日は揚げ物、火曜日はうどん」など、わが家の定番ルールを登録しておけます。AIは必ずこのルールを守して1週間のメニューを提案します。
-            </p>
 
-            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-2">
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
                 <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
                     <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">月曜日</span>
                     <select id="pattern-mon" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
@@ -173,14 +170,14 @@
             </div>
         </section>
 
-        <section id="input-dashboard" class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-5">
+        <section id="input-dashboard" class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-4">
             <div class="flex items-center space-x-2">
                 <span class="text-lg">👩‍🍳</span>
-                <h2 class="font-bold text-sm tracking-wide text-[#3D3A45]">今週のわがままリクエスト</h2>
+                <h2 class="font-bold text-sm tracking-wide text-[#3D3A45]">今週のわがままリクエスト（個別生成時にも反映されます）</h2>
             </div>
 
             <div class="space-y-2">
-                <label class="block text-xs font-bold text-[#A9A5A0]"><i class="fa-solid fa-basket-shopping mr-1 text-[#81B29A]"></i> 今週とくに優先して使いたい食材（複数選べます）</label>
+                <label class="block text-xs font-bold text-[#A9A5A0]"><i class="fa-solid fa-basket-shopping mr-1 text-[#81B29A]"></i> 優先して使いたい食材（複数選べます）</label>
                 <div class="flex flex-wrap gap-1.5" id="weekly-ingredients">
                     <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="豚肉">🐷 豚肉</button>
                     <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="鶏肉">🐔 鶏肉</button>
@@ -194,48 +191,30 @@
             </div>
 
             <div class="space-y-1.5">
-                <label for="weekly-free" class="block text-xs font-bold text-[#A9A5A0]"><i class="fa-regular fa-comment-dots mr-1 text-[#E07A5F]"></i> アレルギー、苦手なもの、その他AI栄養士への伝言</label>
-                <textarea id="weekly-free" rows="2" class="w-full text-xs rounded-2xl border-[#F1ECE6] border p-3.5 focus:ring-1 focus:ring-[#E07A5F] focus:border-[#E07A5F] outline-none bg-[#FAF8F5]/30 placeholder:text-gray-300" placeholder="例：こどもが辛いもの苦手です。木曜日は帰りが遅いのでパパッと作れるもの。"></textarea>
+                <label for="weekly-free" class="block text-xs font-bold text-[#A9A5A0]"><i class="fa-regular fa-comment-dots mr-1 text-[#E07A5F]"></i> アレルギー、苦手なもの、AI栄養士への伝言</label>
+                <textarea id="weekly-free" rows="2" class="w-full text-xs rounded-2xl border-[#F1ECE6] border p-3.5 focus:ring-1 focus:ring-[#E07A5F] focus:border-[#E07A5F] outline-none bg-[#FAF8F5]/30 placeholder:text-gray-300" placeholder="例：こどもが辛いもの苦手です。"></textarea>
             </div>
-
-            <button id="btn-generate-week" class="w-full bg-[#E07A5F] hover:bg-[#D06B50] text-white rounded-2xl py-4 font-bold tracking-wider text-xs transition duration-300 shadow-md shadow-[#E07A5F]/10 flex items-center justify-center space-x-2">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <span>基本パターンに沿って今週の献立ノートを作る</span>
-            </button>
         </section>
 
-        <div id="loader" class="hidden bg-white rounded-3xl p-8 border border-[#F1ECE6] soft-card text-center space-y-4 fade-in">
-            <div class="relative w-20 h-20 mx-auto">
+        <div id="loader" class="hidden bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card text-center space-y-3 fade-in">
+            <div class="relative w-14 h-14 mx-auto">
                 <div class="absolute inset-0 border-4 border-[#FAF8F5] rounded-full"></div>
                 <div class="absolute inset-0 border-4 border-t-[#E07A5F] rounded-full animate-spin"></div>
-                <div class="absolute inset-0 flex items-center justify-center text-2xl">🍳</div>
             </div>
-            <div class="space-y-1">
-                <p id="loader-status" class="text-xs font-bold text-[#3D3A45] font-handwriting tracking-wide">AI栄養士が今週のノートを書いています...</p>
-                <p class="text-[10px] text-[#A9A5A0]">無料枠の制限を回避するため、曜日ごとに安全に小分け処理をしています。</p>
-            </div>
+            <p id="loader-status" class="text-xs font-bold text-[#3D3A45] font-handwriting tracking-wide">AI栄養士がノートに書き込み中...</p>
             <div class="w-full bg-[#FAF8F5] h-1.5 rounded-full overflow-hidden max-w-xs mx-auto border border-[#F1ECE6]/30">
                 <div id="loader-bar" class="bg-[#81B29A] h-full transition-all duration-300" style="width: 0%"></div>
             </div>
         </div>
 
-        <div id="results-area" class="hidden space-y-5">
+        <div id="results-area" class="space-y-5">
             
-            <div class="bg-gradient-to-br from-[#E07A5F]/90 to-[#F4A261]/90 rounded-3xl p-6 text-white shadow-xl shadow-[#E07A5F]/5 space-y-1.5 relative overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 text-8xl opacity-10 rotate-12"><i class="fa-solid fa-book-open"></i></div>
-                <h3 id="res-weekly-theme" class="text-base font-bold font-handwriting tracking-wide">--</h3>
-                <p id="res-weekly-focus" class="text-xs text-white/90 leading-relaxed font-medium">--</p>
-            </div>
-
             <div class="flex bg-white p-1.5 rounded-2xl border border-[#F1ECE6] shadow-sm">
                 <button id="tab-btn-menus" class="tab-btn flex-1 text-xs font-bold py-3 rounded-xl transition duration-200 bg-[#E07A5F] text-white" data-target="tab-content-menus">
                     <i class="fa-solid fa-utensils mr-1.5"></i>献立ノート
                 </button>
                 <button id="tab-btn-shopping" class="tab-btn flex-1 text-xs font-bold py-3 rounded-xl transition duration-200 text-[#A9A5A0] hover:text-[#3D3A45]" data-target="tab-content-shopping">
                     <i class="fa-solid fa-cart-shopping mr-1.5"></i>まとめ買い物
-                </button>
-                <button id="tab-btn-hacks" class="tab-btn flex-1 text-xs font-bold py-3 rounded-xl transition duration-200 text-[#A9A5A0] hover:text-[#3D3A45]" data-target="tab-content-hacks">
-                    <i class="fa-solid fa-lightbulb mr-1.5"></i>下ごしらえ
                 </button>
             </div>
 
@@ -248,36 +227,11 @@
                             <span class="text-lg">🛒</span>
                             <h4 class="font-bold text-sm text-[#3D3A45]">スーパーの「売り場別」まとめお買い物ノート</h4>
                         </div>
-                        <span class="text-[10px] text-[#A9A5A0] font-bold">5人分（大人2・こども3）の合計分量</span>
+                        <span class="text-[10px] text-[#A9A5A0] font-bold">5人分の合計分量（生成済みの曜日から自動集計）</span>
                     </div>
                     <div id="shopping-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
                 </div>
             </div>
-            
-            <div id="tab-content-hacks" class="tab-panel hidden space-y-4">
-                <div class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-3">
-                    <div class="flex items-center space-x-2 border-b border-[#FAF8F5] pb-2">
-                        <span class="text-sm">💡</span>
-                        <h4 class="font-bold text-sm text-[#3D3A45]">今週のりきり下ごしらえハック</h4>
-                    </div>
-                    <p id="res-weekend-prep" class="text-xs text-[#6D6A75] leading-relaxed whitespace-pre-line bg-[#FAF8F5] p-4 rounded-2xl">--</p>
-                </div>
-
-                <div class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-brands fa-line text-emerald-500 text-xl"></i>
-                            <h4 class="font-bold text-sm text-[#3D3A45]">家族へ送るLINEメッセージ</h4>
-                        </div>
-                        <button id="btn-copy-line" class="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-2 rounded-xl font-bold transition flex items-center space-x-1.5">
-                            <i class="fa-regular fa-copy"></i>
-                            <span>コピーする</span>
-                        </button>
-                    </div>
-                    <textarea id="line-textarea" rows="8" class="w-full text-xs rounded-2xl border-[#F1ECE6] p-4 bg-[#FAF8F5]/40 focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400 whitespace-pre-line font-medium text-[#504D58]" readonly></textarea>
-                </div>
-            </div>
-
         </div>
 
     </main>
@@ -299,38 +253,30 @@
 
         const weeklyIngredientsContainer = document.getElementById("weekly-ingredients");
         const weeklyFree = document.getElementById("weekly-free");
-        const btnGenerateWeek = document.getElementById("btn-generate-week");
 
         const loader = document.getElementById("loader");
         const loaderBar = document.getElementById("loader-bar");
         const resultsArea = document.getElementById("results-area");
 
-        const resWeeklyTheme = document.getElementById("res-weekly-theme");
-        const resWeeklyFocus = document.getElementById("res-weekly-focus");
-        const resWeekendPrep = document.getElementById("res-weekend-prep");
-        const lineTextarea = document.getElementById("line-textarea");
-        const btnCopyLine = document.getElementById("btn-copy-line");
-
         const tabContentMenus = document.getElementById("tab-content-menus");
         const shoppingGrid = document.getElementById("shopping-grid");
 
+        // 中継用のGAS本番URL
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzZHiGnmmJU0D1lrAN9Iv5D_zKYb34w2dX_c7p-udQxPbaVt_GNlo5VYIE6BLt5D890Ag/exec";
 
+        // 5日間の固定配列枠
+        const DAYS_LIST = ["月曜日", "火曜日", "水曜日", "木曜日", "金曜日"];
         let weeklyMenu = [];
-        let weeklyTheme = "";
-        let nutritionFocus = "";
-        let weekendPrep = "";
         let selectedWeeklyIngredients = [];
 
-        // --- 2. 💡【家族共有化デバッグ】ページ起動時の自動サーバー同期処理 ---
+        // --- 2. ページ起動時の初期化 ＆ クラウドデータベースからの復元同期 ---
         document.addEventListener("DOMContentLoaded", async () => {
             restoreWeeklyPatterns();
             
-            // APIキーの個別設定の復元
             const savedUserKey = localStorage.getItem("gemini_user_api_key");
             if (savedUserKey) inputApiKey.value = savedUserKey;
 
-            // タグボタンのクリックハンドリング
+            // 食材タグのハンドリング
             document.querySelectorAll(".tag-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const val = btn.getAttribute("data-val");
@@ -361,64 +307,48 @@
                 });
             });
 
-            // 💡【家族共有】スマホ等の別端末対応：GASサーバー（doGet）から最新献立データを最優先で自動復元
+            // 💡【ステップ途中保存】GASサーバーの共有金庫からデータを最優先で取得
             try {
                 const response = await fetch(GAS_URL);
                 if (response.ok) {
                     const resJson = await response.json();
                     if (resJson.status === "success" && resJson.data) {
-                        const serverData = resJson.data;
-                        weeklyMenu = serverData.menus || [];
-                        weeklyTheme = serverData.weekly_theme || "";
-                        nutritionFocus = serverData.nutrition_focus || "";
-                        weekendPrep = serverData.weekend_prep || "";
-                        
-                        if (weeklyMenu.length > 0) {
-                            renderAll();
-                            resultsArea.classList.remove("hidden");
-                            console.log("GAS共有データベースから最新ノートをロードしました。");
-                            return; // サーバー同期に成功した場合はここで処理を抜ける
-                        }
+                        weeklyMenu = resJson.data.menus || [];
+                        console.log("GAS共有金庫から現在の献立ノートをロードしました。");
                     }
                 }
             } catch (err) {
-                console.warn("共有データベースからの自動同期に失敗しました。ローカルストレージからの復元を試みます。", err);
-            }
-
-            // サーバーにデータがない、またはオフライン時のフォールバック（従来のブラウザ内復元）
-            const savedData = localStorage.getItem("gemini_saved_menu_data");
-            if (savedData) {
-                try {
-                    const parsed = JSON.parse(savedData);
-                    weeklyMenu = parsed.menus || [];
-                    weeklyTheme = parsed.weekly_theme || "";
-                    nutritionFocus = parsed.nutrition_focus || "";
-                    weekendPrep = parsed.weekend_prep || "";
-                    if (weeklyMenu.length > 0) {
-                        renderAll();
-                        resultsArea.classList.remove("hidden");
-                    }
-                } catch (e) {
-                    console.error("データのローカル復元に失敗しました。", e);
+                console.warn("クラウド金庫との同期に失敗しました。ローカルデータを参照します。", err);
+                const savedData = localStorage.getItem("gemini_saved_menu_data");
+                if (savedData) {
+                    try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {}
                 }
             }
+
+            // 配列構造の初期化保証（5日分の枠がなければ空枠を作る）
+            initializeWeeklyMenuArray();
+            renderAll();
         });
 
-        // 基本パターンの自動保存
-        [patternMon, patternTue, patternWed, patternThu, patternFri].forEach(el => {
-            el.addEventListener("change", () => saveWeeklyPatterns());
-        });
-
-        function saveWeeklyPatterns() {
-            const patterns = {
-                mon: patternMon.value,
-                tue: patternTue.value,
-                wed: patternWed.value,
-                thu: patternThu.value,
-                fri: patternFri.value
-            };
-            localStorage.setItem("gemini_weekly_patterns", JSON.stringify(patterns));
+        function initializeWeeklyMenuArray() {
+            const tempMap = {};
+            weeklyMenu.forEach(m => { if(m && m.day) tempMap[m.day] = m; });
+            
+            // 月曜〜金曜が必ず入った5要素の綺麗な枠組みに整える
+            weeklyMenu = DAYS_LIST.map(dayName => {
+                return tempMap[dayName] || { day: dayName, is_empty: true };
+            });
         }
+
+        // パターンの自動保存
+        [patternMon, patternTue, patternWed, patternThu, patternFri].forEach(el => {
+            el.addEventListener("change", () => {
+                const patterns = {
+                    mon: patternMon.value, tue: patternTue.value, wed: patternWed.value, thu: patternThu.value, fri: patternFri.value
+                };
+                localStorage.setItem("gemini_weekly_patterns", JSON.stringify(patterns));
+            });
+        });
 
         function restoreWeeklyPatterns() {
             const saved = localStorage.getItem("gemini_weekly_patterns");
@@ -430,36 +360,22 @@
                     if (p.wed) patternWed.value = p.wed;
                     if (p.thu) patternThu.value = p.thu;
                     if (p.fri) patternFri.value = p.fri;
-                } catch (e) {
-                    console.error("パターンの復元に失敗しました。", e);
-                }
+                } catch (e) {}
             }
         }
 
-        // 初期化ボタン（サーバー同期対応）
+        // 初期化（全消去）
         btnResetAll.addEventListener("click", async () => {
-            if (confirm("おうちの献立ノート、基本パターン、およびお買い物リストの全履歴を完全に消去しますか？（クラウド上の共有データも初期化されます）")) {
+            if (confirm("すべての献立ノートと買い物リストの履歴を消去しますか？（別の端末データもリセットされます）")) {
                 localStorage.removeItem("gemini_saved_menu_data");
-                localStorage.removeItem("gemini_weekly_patterns");
-                localStorage.removeItem("gemini_user_api_key");
                 localStorage.removeItem("gemini_checked_items");
-                weeklyMenu = [];
-                weeklyTheme = "";
-                nutritionFocus = "";
-                weekendPrep = "";
-                
-                // 💡クラウド上の金庫データも物理的に消去要請
                 try {
                     await fetch(GAS_URL, {
                         method: "POST",
                         headers: { "Content-Type": "text/plain" },
                         body: JSON.stringify({ action: "save_db_menu", menuData: null })
                     });
-                } catch(e) {
-                    console.error("クラウドデータの初期化に失敗しました。", e);
-                }
-
-                alert("マイノートと共有データベースを初期化しました。");
+                } catch(e) {}
                 window.location.reload();
             }
         });
@@ -467,42 +383,29 @@
         btnToggleConfig.addEventListener("click", () => configPanel.classList.toggle("hidden"));
         btnSaveKey.addEventListener("click", () => {
             localStorage.setItem("gemini_user_api_key", inputApiKey.value.trim());
-            alert("個別APIキーをブラウザに記憶しました。");
+            alert("APIキーを保存しました。");
         });
         btnClearKey.addEventListener("click", () => {
             localStorage.removeItem("gemini_user_api_key");
             inputApiKey.value = "";
-            alert("個別APIキーを消去しました。自動中継モードに戻ります。");
+            alert("個別キーを消去しました。");
         });
 
-        // ローダー演出
-        let loaderInterval = null;
         function startLoaderAnimation() {
-            let p = 0;
-            loaderBar.style.width = "0%";
+            let p = 0; loaderBar.style.width = "0%";
             loaderInterval = setInterval(() => {
-                p += Math.random() * 8;
-                if (p > 92) p = 92; // 完了するまで92%で待機
-                loaderBar.style.width = `${p}%`;
-            }, 400);
+                p += Math.random() * 12; if (p > 95) p = 95; loaderBar.style.width = `${p}%`;
+            }, 300);
         }
         function stopLoaderAnimation() {
-            if (loaderInterval) {
-                clearInterval(loaderInterval);
-                loaderInterval = null;
-            }
+            if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
             loaderBar.style.width = "100%";
         }
 
-        // --- 3. API接続のコア（GAS経由中継） ---
-        async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 5, delay = 1000) {
+        // --- 3. API通信中継関数 ---
+        async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 3, delay = 1000) {
             const userKey = localStorage.getItem("gemini_user_api_key") || "";
-            const payload = {
-                prompt: prompt,
-                systemInstruction: systemInstruction,
-                schema: schema,
-                userKey: userKey
-            };
+            const payload = { prompt: prompt, systemInstruction: systemInstruction, schema: schema, userKey: userKey };
 
             for (let i = 0; i < retries; i++) {
                 try {
@@ -511,240 +414,34 @@
                         headers: { "Content-Type": "text/plain" },
                         body: JSON.stringify(payload)
                     });
-                    
-                    if (response.ok) {
-                        return await response.json();
-                    }
-                    console.warn(`通信試行 ${i + 1} 失敗。自動再試行中...`);
+                    if (response.ok) return await response.json();
                 } catch (e) {
                     if (i === retries - 1) throw e;
                 }
-                await new Promise(resolve => setTimeout(resolve, delay));
+                await new Promise(r => setTimeout(r, delay));
                 delay *= 2;
             }
-            throw new Error("GASサーバーへのリクエストがタイムアウトしました。");
+            throw new Error("通信がタイムアウトしました。もう一度お試しください。");
         }
 
-        // --- 4. 💡【小分け作戦】スキーマの2分割定義 ---
-        const weeklySkeletonSchema = {
-            type: "OBJECT",
-            properties: {
-                weekly_theme: { type: "STRING", description: "今週の献立ノートの優しくておいしそうな全体キャッチコピー" },
-                nutrition_focus: { type: "STRING", description: "お母さんに向けた今週の全体の栄養設計アドバイス（80文字程度）" },
-                weekend_prep: { type: "STRING", description: "週末や前日にこれだけやっておくと平日が劇的に楽になる、具体的な下ごしらえのコツ" },
-                menus: {
-                    type: "ARRAY",
-                    description: "5日間分のメニューの骨組み。料理名のみを定義します。",
-                    items: {
-                        type: "OBJECT",
-                        properties: {
-                            day: { type: "STRING", description: "曜日（月曜日、火曜日、水曜日、木曜日、金曜日）" },
-                            main_dish: { type: "STRING", description: "主菜の名前" },
-                            main_key_point: { type: "STRING", description: "調理を短縮し美味しく作る管理栄養士からのコツ" },
-                            sub_dish: { type: "STRING", description: "副菜の名前" },
-                            soup: { type: "STRING", description: "汁物の名前" },
-                            time_mins: { type: "INTEGER", description: "調理時間の目安（分）" }
-                        },
-                        required: ["day", "main_dish", "main_key_point", "sub_dish", "soup", "time_mins"]
-                    }
-                }
-            },
-            required: ["weekly_theme", "nutrition_focus", "weekend_prep", "menus"]
-        };
-
-        const dayDetailSchema = {
-            type: "OBJECT",
-            properties: {
-                recipe: {
-                    type: "OBJECT",
-                    properties: {
-                        ingredients: { type: "ARRAY", items: { type: "STRING" }, description: "5人分の具体的な材料と分量のリスト" },
-                        steps: { type: "ARRAY", items: { type: "STRING" }, description: "3ステップ程度の簡潔な作り方の手順" }
-                    },
-                    required: ["ingredients", "steps"]
-                },
-                day_shopping: {
-                    type: "ARRAY",
-                    items: {
-                        type: "OBJECT",
-                        properties: {
-                            section: { type: "STRING", description: "スーパーの売り場カテゴリ（① お野菜・フルーツ、② お肉・お魚、③ 豆腐・牛乳・調味料）" },
-                            items: { type: "ARRAY", items: { type: "STRING" }, description: "この曜日分に必要な食材リスト" }
-                        },
-                        required: ["section", "items"]
-                    }
-                }
-            },
-            required: ["recipe", "day_shopping"]
-        };
-
-        // --- 5. 1週間分の生成アクション（分割ループ処理） ---
-        btnGenerateWeek.addEventListener("click", async () => {
-            const monRule = patternMon.value;
-            const tueRule = patternTue.value;
-            const wedRule = patternWed.value;
-            const thuRule = patternThu.value;
-            const friRule = patternFri.value;
-
-            let reqIng = selectedWeeklyIngredients.length > 0 ? `優先して使いたい食材: ${selectedWeeklyIngredients.join('、')}` : "";
-            let reqFree = weeklyFree.value.trim() ? `その他のご要望: ${weeklyFree.value.trim()}` : "";
-
-            startLoaderAnimation();
-            const statusText = document.getElementById("loader-status");
-            loader.classList.remove("hidden");
-            resultsArea.classList.add("hidden");
-            btnGenerateWeek.disabled = true;
-
-            const systemInstruction = 
-                "あなたは5人家族（大人2人、こども3人）の毎日の献立作りを温かく支えるプロの管理栄養士です。\n" +
-                "お母さんが事前に設定した「曜日ごとの基本プランルール」を絶対に100%厳守した上で、一汁二菜（主菜、副菜、汁物）の夕食を考えてください。必ず指定されたJSON構造以外の文字は出力しないでください。";
-
-            try {
-                // --- 🌟 フェーズ1: 1週間の骨組み（メニュー名のみ）を一括生成 ---
-                if (statusText) statusText.innerText = "今週のごはん全体の骨組みを考えています...";
-                
-                const skeletonPrompt = 
-                    `【5人家族(大人2、こども3)の夕食プランの骨組みを生成してください】\n` +
-                    `以下の「曜日別のわが家のごはんパターンルール」を絶対に厳守して、各曜日のメニュー名・時間・理由の構成を組み立ててください。レシピや買い物リストの配列はこの段階では含めないでください：\n` +
-                    `- 月曜日のジャンル: ${monRule}\n` +
-                    `- 火曜日のジャンル: ${tueRule}\n` +
-                    `- 水曜日のジャンル: ${wedRule}\n` +
-                    `- 木曜日のジャンル: ${thuRule}\n` +
-                    `- 金曜日のジャンル: ${friRule}\n\n` +
-                    `【追加のお母さんからのリクエスト】:\n${reqIng}\n${reqFree}`;
-
-                const skeletonResponse = await fetchGeminiAPI(skeletonPrompt, systemInstruction, weeklySkeletonSchema);
-                
-                if (skeletonResponse && skeletonResponse.error) {
-                    throw new Error(`【GASシステムエラー】${skeletonResponse.message || "内部エラー"}`);
-                }
-
-                const skText = skeletonResponse.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (!skText) throw new Error("骨組みの生成において、AIからの応答が空でした。");
-
-                const cleanedSk = cleanJsonString(skText);
-                const data = JSON.parse(cleanedSk);
-                
-                weeklyTheme = data.weekly_theme;
-                nutritionFocus = data.nutrition_focus;
-                weekendPrep = data.weekend_prep;
-                
-                const baseMenus = data.menus; 
-                
-                // --- 🌟 フェーズ2: 各曜日の詳細（レシピ・買い物リスト）を1日ずつ順番に肉付け ---
-                weeklyMenu = []; 
-
-                for (let i = 0; i < baseMenus.length; i++) {
-                    const currentDayMenu = baseMenus[i];
-                    const dayName = currentDayMenu.day;
-
-                    if (statusText) statusText.innerText = `${dayName}の詳しいレシピと買い物ノートを書いています... (${i + 1}/5)`;
-
-                    // 無料枠の1分間あたり制限（RPM）を完璧にかわすため、1.5秒の安全なディレイを入れる
-                    if (i > 0) {
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                    }
-
-                    const currentRule = dayName === "月曜日" ? monRule : dayName === "火曜日" ? tueRule : dayName === "水曜日" ? wedRule : dayName === "木曜日" ? thuRule : friRule;
-
-                    const detailPrompt = 
-                        `【5人家族分（大人2、子供3）の詳細レシピと買い物材料リストの肉付け】\n` +
-                        `曜日: ${dayName}\n` +
-                        `設定されたわが家ルール: ${currentRule}\n` +
-                        `決定したメニュー:\n` +
-                        `- 主菜: ${currentDayMenu.main_dish}\n` +
-                        `- 副菜: ${currentDayMenu.sub_dish}\n` +
-                        `- 汁物: ${currentDayMenu.soup}\n\n` +
-                        `このメニューにベストマッチする、5人分に十分な具体的な【材料リスト(ingredients)】、3ステップ程度の簡単な【作り方手順(steps)】、およびスーパーの売り場カテゴリ別の【買い物リスト(day_shopping)】を完璧なJSONデータで構築してください。`;
-
-                    const detailResponse = await fetchGeminiAPI(detailPrompt, systemInstruction, dayDetailSchema);
-                    
-                    if (detailResponse && detailResponse.error) {
-                        throw new Error(`【GASシステムエラー】${detailResponse.message || "内部エラー"}`);
-                    }
-
-                    const dtText = detailResponse.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (!dtText) throw new Error(`${dayName}の詳細生成において、AIからの応答が空でした。`);
-
-                    const cleanedDt = cleanJsonString(dtText);
-                    const detailData = JSON.parse(cleanedDt);
-
-                    const completeDayMenu = {
-                        ...currentDayMenu,
-                        recipe: detailData.recipe,
-                        day_shopping: detailData.day_shopping
-                    };
-
-                    weeklyMenu.push(completeDayMenu);
-                }
-
-                // 💡保存＆共有データベース同期処理の呼び出し
-                await saveMenuDataToLocalStorage();
-
-                stopLoaderAnimation();
-                renderAll();
-
-                loader.classList.add("hidden");
-                resultsArea.classList.remove("hidden");
-                document.getElementById("tab-btn-menus").click();
-
-            } catch (err) {
-                console.error(err);
-                stopLoaderAnimation();
-                loader.classList.add("hidden");
-                resultsArea.classList.remove("hidden");
-                alert(err.message || err);
-            } finally {
-                btnGenerateWeek.disabled = false;
-            }
-        });
-
-        // 💡【家族共有対応】ブラウザへの永続化と同時に、GAS共有プロパティへデータをリアルタイム同期送信
-        async function saveMenuDataToLocalStorage() {
-            const dataToSave = {
-                menus: weeklyMenu,
-                weekly_theme: weeklyTheme,
-                nutrition_focus: nutritionFocus,
-                weekend_prep: weekendPrep
-            };
-            
-            // 従来通りのローカルストレージ保存
-            localStorage.setItem("gemini_saved_menu_data", JSON.stringify(dataToSave));
-
-            // GAS（家族共有用金庫）への同期送信
-            try {
-                await fetch(GAS_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({
-                        action: "save_db_menu",
-                        menuData: dataToSave
-                    })
-                });
-                console.log("家族共有クラウドデータベースへのリアルタイム同期に成功しました。");
-            } catch (e) {
-                console.error("家族共有データベースへの自動アップロードに失敗しました。", e);
-            }
-        }
-
-        // --- 6. 個別曜日変更のアクション（単一曜日リファクタリング・共有データベース連動版） ---
-        const singleDayResponseSchema = {
+        // --- 4. 💡【曜日別独立生成用】完全スネークケーススキーマ仕様 ---
+        const singleDayProductionSchema = {
             type: "OBJECT",
             properties: {
                 day_menu: {
                     type: "OBJECT",
                     properties: {
-                        day: { type: "STRING" },
-                        main_dish: { type: "STRING" },
-                        main_key_point: { type: "STRING" },
-                        sub_dish: { type: "STRING" },
-                        soup: { type: "STRING" },
-                        time_mins: { type: "INTEGER" },
+                        day: { type: "STRING", description: "指定された曜日名" },
+                        main_dish: { type: "STRING", description: "主菜の名前" },
+                        main_key_point: { type: "STRING", description: "管理栄養士からの調理短縮・美味のコツ（40文字程度）" },
+                        sub_dish: { type: "STRING", description: "副菜の名前" },
+                        soup: { type: "STRING", description: "汁物の名前" },
+                        time_mins: { type: "INTEGER", description: "調理時間の目安（分）" },
                         recipe: {
                             type: "OBJECT",
                             properties: {
-                                ingredients: { type: "ARRAY", items: { type: "STRING" } },
-                                steps: { type: "ARRAY", items: { type: "STRING" } }
+                                ingredients: { type: "ARRAY", items: { type: "STRING" }, description: "5人分の具体的な材料・分量リスト" },
+                                steps: { type: "ARRAY", items: { type: "STRING" }, description: "3ステップ程度の簡潔な作り方の手順" }
                             },
                             required: ["ingredients", "steps"]
                         },
@@ -753,8 +450,8 @@
                             items: {
                                 type: "OBJECT",
                                 properties: {
-                                    section: { type: "STRING" },
-                                    items: { type: "ARRAY", items: { type: "STRING" } }
+                                    section: { type: "STRING", description: "スーパーの売り場（① お野菜・フルーツ、② お肉・お魚、③ 豆腐・牛乳・調味料）" },
+                                    items: { type: "ARRAY", items: { type: "STRING" }, description: "必要な食材リスト" }
                                 },
                                 required: ["section", "items"]
                             }
@@ -766,86 +463,122 @@
             required: ["day_menu"]
         };
 
-        window.reGenerateSingleDay = async function(dayName, idx) {
-            const changeInput = document.getElementById(`change-input-${idx}`);
-            const reason = changeInput.value.trim();
-            if (!reason) {
-                alert("変更したい理由や、新しいリクエストを入力してください。");
-                return;
-            }
+        // --- 5. 💡【コア】特定の曜日だけをオンデマンドで生成 ＆ 即時クラウド保存ロジック ---
+        window.buildSingleDayMenu = async function(dayName, idx) {
+            const selectEl = document.getElementById(`pattern-${dayName === '月曜日' ? 'mon' : dayName === '火曜日' ? 'tue' : dayName === '水曜日' ? 'wed' : dayName === '木曜日' ? 'thu' : 'fri'}`);
+            const currentRule = selectEl ? selectEl.value : "おまかせ";
+
+            let reqIng = selectedWeeklyIngredients.length > 0 ? `優先したい食材: ${selectedWeeklyIngredients.join('、')}` : "";
+            let reqFree = weeklyFree.value.trim() ? `伝言: ${weeklyFree.value.trim()}` : "";
 
             startLoaderAnimation();
+            const statusText = document.getElementById("loader-status");
+            if (statusText) statusText.innerText = `AI栄養士が【${dayName}】の専用ノートを書き込んでいます...`;
             loader.classList.remove("hidden");
-            resultsArea.classList.add("hidden");
 
-            const systemInstruction = "あなたは5人家族の献立を支えるプロの栄養士です。指定された曜日のメニューをリクエストに合わせて変更し、指定されたスネークケースのJSON構造でのみ返答してください。";
-            
+            // 全ボタンを一時的に無効化して連打を防ぐ
+            document.querySelectorAll(".gen-btn").forEach(b => b.disabled = true);
+
+            const systemInstruction = 
+                "Aあなたは5人家族（大人2人、こども3人）の夕食を支える温かい管理栄養士です。\n" +
+                "お母さんがリクエストした曜日の基本ジャンルルールを100%厳守し、一汁二菜（主菜・副菜・汁物）のレシピと買い物リストを完璧なJSON構造でのみ出力してください。";
+
             const prompt = 
-                `【メニューの個別変更要親】\n` +
-                `対象の曜日: ${dayName}\n` +
-                `お母さんからの変更理由・要望: ${reason}\n\n` +
-                `現在の1週間の全体のバランスを壊さない範囲で、この曜日単体の新しい主菜・副菜・汁物・具体的なレシピ・売り場別の買い物リストを再構築してください。`;
+                `【5人家族分の夕食メニューを単一生成・肉付けしてください】\n` +
+                `対象曜日: ${dayName}\n` +
+                `わが家ルール: ${currentRule}\n\n` +
+                `【お母さんからの今週の全体リクエスト】\n` +
+                `${reqIng}\n${reqFree}\n\n` +
+                `上記をしっかり反映した、5人家族が笑顔になる主菜・副菜・汁物、およびその【材料】、【手順】、【売り場別買い物アイテム】を規定のJSONケースで出力してください。`;
 
             try {
-                const apiResponse = await fetchGeminiAPI(prompt, systemInstruction, singleDayResponseSchema);
+                const apiResponse = await fetchGeminiAPI(prompt, systemInstruction, singleDayProductionSchema);
                 
                 if (apiResponse && apiResponse.error) {
-                    throw new Error(`【GASシステムエラー】${apiResponse.message || "内部エラー"}`);
+                    throw new Error(`【Googleエラー】${apiResponse.message}`);
                 }
 
                 const responseText = apiResponse.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (!responseText) {
-                    throw new Error("代替メニューの生成に失敗しました。");
-                }
+                if (!responseText) throw new Error("AIからの応答が空でした。もう一度お試しください。");
 
                 const cleanedText = cleanJsonString(responseText);
-                const data = JSON.parse(cleanedText);
-                const newDayMenu = data.day_menu;
+                const parsed = JSON.parse(cleanedText);
+                const newDayMenu = parsed.day_menu;
 
-                // 該当曜日だけを精密に差し替え
-                weeklyMenu = weeklyMenu.map(m => m.day === dayName ? newDayMenu : m);
-                
-                // 💡変更結果をブラウザおよびクラウド共有DBへ強制上書き同期
-                await saveMenuDataToLocalStorage();
-                
+                // 💡該当の曜日枠に完成データをパチッと上書き格納
+                weeklyMenu[idx] = newDayMenu;
+
+                // 💡【途中保存の神髄】完成した瞬間にブラウザとクラウド金庫の両方に即座に自動保存！
+                await saveMenuDataToCloud();
+
                 stopLoaderAnimation();
                 renderAll();
-
                 loader.classList.add("hidden");
-                resultsArea.classList.remove("hidden");
+
             } catch (err) {
                 console.error(err);
                 stopLoaderAnimation();
                 loader.classList.add("hidden");
-                resultsArea.classList.remove("hidden");
-                alert(`メニューの個別調整に失敗しました:\n${err.message}`);
+                alert(err.message || err);
+            } finally {
+                document.querySelectorAll(".gen-btn").forEach(b => b.disabled = false);
             }
         };
 
-        // --- 7. 画面描画マッピングシステム ---
-        function renderAll() {
-            renderWeeklyTheme();
-            renderWeeklyMenus();
-            renderMergedShoppingList();
-            renderHacksAndLineShare();
+        async function saveMenuDataToCloud() {
+            const dataToSave = { menus: weeklyMenu };
+            // ローカルストレージ保存
+            localStorage.setItem("gemini_saved_menu_data", JSON.stringify(dataToSave));
+
+            // GAS共有プロパティDBへの同期
+            try {
+                await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify({ action: "save_db_menu", menuData: dataToSave })
+                });
+                console.log("共有データベースに途中保存の同期が成功しました。");
+            } catch (e) {
+                console.error("共有データベースへの同期に失敗しました。", e);
+            }
         }
 
-        function renderWeeklyTheme() {
-            resWeeklyTheme.innerText = weeklyTheme || "わが家の献立ノート";
-            resWeeklyFocus.innerText = nutritionFocus || "5人家族のための栄養バランスプランです。";
+        // --- 6. 画面マッピング・UIレンダリング ---
+        function renderAll() {
+            renderWeeklyMenus();
+            renderMergedShoppingList();
         }
 
         function renderWeeklyMenus() {
             tabContentMenus.innerHTML = "";
             
             weeklyMenu.forEach((m, idx) => {
-                const dayCardId = `day-card-${idx}`;
+                const card = document.createElement("div");
+                
+                // 💡 ケースA: まだ生成していない「未定」のカードデザイン（水平思考UI）
+                if (m.is_empty) {
+                    card.className = "bg-white/40 rounded-3xl border-2 border-dashed border-[#F1ECE6] p-6 text-center space-y-3 fade-in";
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between border-b border-[#F1ECE6]/60 pb-2">
+                            <span class="text-xs font-bold text-[#A9A5A0] bg-slate-100 px-4 py-1.5 rounded-full font-handwriting">${DAYS_LIST[idx]}</span>
+                            <span class="text-[10px] text-[#A9A5A0] font-bold"><i class="fa-solid fa-circle-notch text-gray-300 mr-1"></i>メニュー未定</span>
+                        </div>
+                        <div class="py-4">
+                            <p class="text-xs text-[#A9A5A0] font-medium mb-3">この曜日の献立ノートはまだ白紙です。ルールに沿ってメニューを書かせましょう！</p>
+                            <button class="gen-btn bg-white hover:bg-[#E07A5F] border border-[#E07A5F] text-[#E07A5F] hover:text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-sm flex items-center space-x-1.5 mx-auto" onclick="window.buildSingleDayMenu('${DAYS_LIST[idx]}', ${idx})">
+                                <i class="fa-solid fa-feather-pointed"></i>
+                                <span>${DAYS_LIST[idx]}のノートを書く</span>
+                            </button>
+                        </div>
+                    `;
+                    tabContentMenus.appendChild(card);
+                    return;
+                }
+
+                // 💡 ケースB: すでに生成が完了している「美しいノート」のカードデザイン
                 const recipeId = `recipe-${idx}`;
                 const changeFormId = `change-form-${idx}`;
-                
-                const card = document.createElement("div");
                 card.className = "bg-white rounded-3xl border border-[#F1ECE6] p-5 soft-card space-y-4 fade-in";
-                card.id = dayCardId;
                 
                 let ingredientsHTML = "";
                 if (m.recipe && m.recipe.ingredients) {
@@ -881,11 +614,11 @@
                         </div>
                         <div class="space-y-0.5 border-t md:border-t-0 md:border-l border-[#F1ECE6]/60 pt-2 md:pt-0 md:pl-3">
                             <span class="text-[9px] text-[#A9A5A0] font-bold tracking-wider block">SUB DISH</span>
-                            <p class="text-xs font-medium text-[#6D6A75]">${m.sub_dish || 'お野菜の副菜'}</p>
+                            <p class="text-xs font-medium text-[#6D6A75]">${m.sub_dish}</p>
                         </div>
                         <div class="space-y-0.5 border-t md:border-t-0 md:border-l border-[#F1ECE6]/60 pt-2 md:pt-0 md:pl-3">
                             <span class="text-[9px] text-[#A9A5A0] font-bold tracking-wider block">SOUP</span>
-                            <p class="text-xs font-medium text-[#6D6A75]">${m.soup || '具だくさんみそ汁'}</p>
+                            <p class="text-xs font-medium text-[#6D6A75]">${m.soup}</p>
                         </div>
                     </div>
 
@@ -894,40 +627,32 @@
                             <div class="space-y-2">
                                 <span class="text-[10px] font-bold text-[#A9A5A0] block"><i class="fa-solid fa-apple-whole mr-1 text-[#81B29A]"></i> 5人分の材料・分量</span>
                                 <ul class="grid grid-cols-1 gap-1.5 bg-[#FAF8F5]/30 p-3 rounded-2xl border border-[#F1ECE6]/40">
-                                    ${ingredientsHTML || '<li class="text-xs text-gray-400">材料データがありません</li>'}
+                                    ${ingredientsHTML}
                                 </ul>
                             </div>
                             <div class="space-y-2">
-                                <span class="text-[10px] font-bold text-[#A9A5A0] block"><i class="fa-solid fa-list-check mr-1 text-[#E07A5F]"></i> パパッと3ステップ調理手順</span>
+                                <span class="text-[10px] font-bold text-[#A9A5A0] block"><i class="fa-solid fa-list-check mr-1 text-[#E07A5F]"></i> 3ステップ調理手順</span>
                                 <div class="space-y-2 bg-[#FAF8F5]/30 p-3 rounded-2xl border border-[#F1ECE6]/40">
-                                    ${stepsHTML || '<p class="text-xs text-gray-400">手順データがありません</p>'}
+                                    ${stepsHTML}
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="${changeFormId}" class="hidden bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6] space-y-2">
-                        <span class="text-[10px] font-bold text-[#A9A5A0] block">1. 使いたい食材を指定（複数可）</span>
-                        <div class="flex flex-wrap gap-1">
-                            <button class="single-ing-btn text-[10px] px-2.5 py-1 rounded-full bg-white border border-[#F1ECE6] text-[#6D6A75]" data-val="豚肉" onclick="toggleTag(this)">🐷 豚肉</button>
-                            <button class="single-ing-btn text-[10px] px-2.5 py-1 rounded-full bg-white border border-[#F1ECE6] text-[#6D6A75]" data-val="鶏肉" onclick="toggleTag(this)">🐔 鶏肉</button>
-                            <button class="single-ing-btn text-[10px] px-2.5 py-1 rounded-full bg-white border border-[#F1ECE6] text-[#6D6A75]" data-val="ひき肉" onclick="toggleTag(this)">🥩 ひき肉</button>
-                            <button class="single-ing-btn text-[10px] px-2.5 py-1 rounded-full bg-white border border-[#F1ECE6] text-[#6D6A75]" data-val="魚類" onclick="toggleTag(this)">🐟 お魚</button>
-                            <button class="single-ing-btn text-[10px] px-2.5 py-1 rounded-full bg-white border border-[#F1ECE6] text-[#6D6A75]" data-val="キャベツ" onclick="toggleTag(this)">🥬 キャベツ</button>
-                        </div>
-                        <span class="text-[10px] font-bold text-[#A9A5A0] block pt-1">2. AIへの具体的な指示（自由入力）</span>
+                        <span class="text-[10px] font-bold text-[#A9A5A0] block">変更したい理由や、新しいリクエストを入力してください：</span>
                         <div class="flex gap-2">
-                            <input type="text" id="change-input-${idx}" class="flex-1 text-xs bg-white border border-[#F1ECE6] rounded-xl px-3 py-2 outline-none focus:border-[#E07A5F]" placeholder="例：月曜の残りの豚肉を使いたい / うどんをお蕎麦に変えて">
-                            <button class="bg-[#81B29A] hover:bg-[#6FA389] text-white text-xs font-bold px-4 py-2 rounded-xl transition" onclick="window.reGenerateSingleDay('${m.day}', ${idx})">変更</button>
+                            <input type="text" id="change-input-${idx}" class="flex-1 text-xs bg-white border border-[#F1ECE6] rounded-xl px-3 py-2 outline-none focus:border-[#E07A5F]" placeholder="例：別の魚メニューに変えて / 帰りが遅いので15分で作れるもの">
+                            <button class="gen-btn bg-[#E07A5F] hover:bg-[#D06B50] text-white text-xs font-bold px-4 py-2 rounded-xl transition" onclick="window.reBuildSingleDay('${m.day}', ${idx})">再生成</button>
                         </div>
                     </div>
 
                     <div class="flex items-center justify-between pt-1 border-t border-[#FAF8F5]">
                         <button class="text-[11px] text-[#E07A5F] font-bold hover:underline flex items-center space-x-1" onclick="toggleAccordion('${recipeId}', this)">
-                            <i class="fa-solid fa-chevron-down mr-1 transition-transform"></i><span>レシピ・材料を見る</span>
+                            <i class="fa-solid fa-chevron-down mr-1"></i><span>レシピ・材料を見る</span>
                         </button>
                         <button class="text-[11px] text-[#A9A5A0] hover:text-[#E07A5F] font-bold flex items-center space-x-1" onclick="document.getElementById('${changeFormId}').classList.toggle('hidden')">
-                            <i class="fa-solid fa-rotate mr-1"></i><span>ここだけ調整する</span>
+                            <i class="fa-solid fa-rotate mr-1"></i><span>この日を作り直す</span>
                         </button>
                     </div>
                 `;
@@ -939,56 +664,41 @@
             const content = document.getElementById(id);
             const icon = btn.querySelector("i");
             const label = btn.querySelector("span");
-            
             if (content.classList.contains("hidden")) {
-                content.classList.remove("hidden");
-                content.classList.add("accordion-open");
-                if (icon) icon.classList.add("rotate-180");
-                if (label) label.innerText = "レシピを閉じる";
+                content.classList.remove("hidden"); icon.classList.add("rotate-180"); label.innerText = "レシピを閉じる";
             } else {
-                content.classList.add("hidden");
-                content.classList.remove("accordion-open");
-                if (icon) icon.classList.remove("rotate-180");
-                if (label) label.innerText = "レシピ・材料を見る";
+                content.classList.add("hidden"); icon.classList.remove("rotate-180"); label.innerText = "レシピ・材料を見る";
             }
         };
 
-        window.toggleTag = function(btn) {
-            const input = btn.parentElement.parentElement.querySelector("input[type='text']");
-            const val = btn.getAttribute("data-val");
-            btn.classList.toggle("bg-[#81B29A]/20");
-            btn.classList.toggle("text-[#4A735E]");
-            btn.classList.toggle("border-[#81B29A]");
+        // すでに生成された特定の曜日をリクエスト付きで上書き再生成する関数
+        window.reBuildSingleDay = async function(dayName, idx) {
+            const inputEl = document.getElementById(`change-input-${idx}`);
+            const reason = inputEl ? inputEl.value.trim() : "";
+            if(!reason) { alert("変更したい理由を入力してください。"); return; }
             
-            if (btn.classList.contains("bg-[#81B29A]/20")) {
-                input.value = input.value ? `${input.value}、${val}を使いたい` : `${val}を使いたい`;
-            }
+            // 内部的には単一生成ロジックに理由を乗せて再利用
+            weeklyFree.value = `${weeklyFree.value} (※${dayName}への個別変更要望: ${reason})`;
+            await window.buildSingleDayMenu(dayName, idx);
+            inputEl.value = "";
         };
 
         function renderMergedShoppingList() {
             shoppingGrid.innerHTML = "";
-            const sections = {
-                "① お野菜・フルーツ": [],
-                "② お肉・お魚": [],
-                "③ 豆腐・牛乳・調味料": []
-            };
+            const sections = { "① お野菜・フルーツ": [], "② お肉・お魚": [], "③ 豆腐・牛乳・調味料": [] };
 
+            // 生成完了している曜日からのみ、買い物リストを自動集計
             weeklyMenu.forEach(dayMenu => {
-                if (!dayMenu.day_shopping) return;
+                if (!dayMenu || dayMenu.is_empty || !dayMenu.day_shopping) return;
                 dayMenu.day_shopping.forEach(sectionBlock => {
                     let sec = sectionBlock.section;
-                    if (sec.includes("野菜") || sec.includes("果物") || sec.includes("青果")) {
-                        sec = "① お野菜・フルーツ";
-                    } else if (sec.includes("肉") || sec.includes("魚") || sec.includes("精肉")) {
-                        sec = "② お肉・お魚";
-                    } else {
-                        sec = "③ 豆腐・牛乳・調味料";
-                    }
+                    if (sec.includes("野菜") || sec.includes("果物") || sec.includes("青果")) sec = "① お野菜・フルーツ";
+                    else if (sec.includes("肉") || sec.includes("魚") || sec.includes("精肉")) sec = "② お肉・お魚";
+                    else sec = "③ 豆腐・牛乳・調味料";
+                    
                     if (sectionBlock.items) {
                         sectionBlock.items.forEach(item => {
-                            if (!sections[sec].includes(item)) {
-                                sections[sec].push(item);
-                            }
+                            if (!sections[sec].includes(item)) sections[sec].push(item);
                         });
                     }
                 });
@@ -1005,7 +715,6 @@
                 items.forEach(item => {
                     const isChecked = checkedItems[item] ? "checked" : "";
                     const strikeClass = isChecked ? "checked-item" : "";
-                    
                     itemsHTML += `
                         <label class="flex items-start space-x-2.5 py-1 cursor-pointer group">
                             <input type="checkbox" ${isChecked} class="mt-0.5 rounded border-[#F1ECE6] text-[#E07A5F] focus:ring-[#E07A5F] transition" data-item-text="${item}" onchange="toggleCheckboxStrike(this)">
@@ -1016,7 +725,7 @@
                 block.innerHTML = `
                     <span class="text-[11px] font-bold text-white bg-[#81B29A] px-3 py-1 rounded-full font-handwriting tracking-wide inline-block mb-1">${secName}</span>
                     <div class="space-y-1">
-                        ${itemsHTML || '<p class="text-[10px] text-[#A9A5A0] py-2">お買い物アイテムはありません</p>'}
+                        ${itemsHTML || '<p class="text-[10px] text-[#A9A5A0] py-2">生成済みの曜日からここに買い物リストが自動集計されます。</p>'}
                     </div>
                 `;
                 shoppingGrid.appendChild(block);
@@ -1027,46 +736,13 @@
             const labelSpan = cb.nextElementSibling;
             const itemText = cb.getAttribute("data-item-text");
             const savedStrikes = JSON.parse(localStorage.getItem("gemini_checked_items") || "{}");
-
             if (cb.checked) {
-                if (labelSpan) labelSpan.classList.add("checked-item");
-                savedStrikes[itemText] = true;
+                if (labelSpan) labelSpan.classList.add("checked-item"); savedStrikes[itemText] = true;
             } else {
-                if (labelSpan) labelSpan.classList.remove("checked-item");
-                delete savedStrikes[itemText];
+                if (labelSpan) labelSpan.classList.remove("checked-item"); delete savedStrikes[itemText];
             }
             localStorage.setItem("gemini_checked_items", JSON.stringify(savedStrikes));
         };
-
-        function renderHacksAndLineShare() {
-            resWeekendPrep.innerText = weekendPrep || "週末の下ごしらえアドバイスは特にありません。";
-
-            let shareText = `👩‍🍳 今週のおうちのごはんメニューだよ 🍳\n\n`;
-            weeklyMenu.forEach(m => {
-                shareText += `📅 【${m.day}】\n`;
-                shareText += `　主菜: ${m.main_dish}\n`;
-                shareText += `　副菜: ${m.sub_dish} / 汁物: ${m.soup}\n\n`;
-            });
-            shareText += `💡 週末のまとめ下ごしらえのコツ:\n${weekendPrep || '特になし'}\n\n#おうちの献立ノート`;
-            
-            lineTextarea.value = shareText;
-        }
-
-        btnCopyLine.addEventListener("click", () => {
-            lineTextarea.select();
-            document.execCommand("copy");
-            
-            const originInner = btnCopyLine.innerHTML;
-            btnCopyLine.innerHTML = `<i class="fa-solid fa-check"></i> <span>コピーしました！</span>`;
-            btnCopyLine.classList.replace("bg-emerald-50", "bg-emerald-600");
-            btnCopyLine.classList.replace("text-emerald-700", "text-white");
-            
-            setTimeout(() => {
-                btnCopyLine.innerHTML = originInner;
-                btnCopyLine.classList.replace("bg-emerald-600", "bg-emerald-50");
-                btnCopyLine.classList.replace("text-white", "text-emerald-700");
-            }, 2000);
-        });
 
         function cleanJsonString(str) {
             let cleaned = str.trim();
