@@ -128,10 +128,12 @@
         let selectedWeeklyIngredients = [];
         let loaderInterval = null;
 
+        // 💡【最重要デバッグ】：起動シーケンスの全面リファクタリング（即時描画ファースト構造）
         document.addEventListener("DOMContentLoaded", async () => {
             restoreWeeklyPatterns();
             if (localStorage.getItem("gemini_user_api_key")) inputApiKey.value = localStorage.getItem("gemini_user_api_key");
 
+            // タグボタンの登録
             document.querySelectorAll(".tag-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const val = btn.getAttribute("data-val");
@@ -145,6 +147,7 @@
                 });
             });
 
+            // タブの登録
             document.querySelectorAll(".tab-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     document.querySelectorAll(".tab-btn").forEach(b => { b.classList.remove("bg-[#E07A5F]", "text-white"); b.classList.add("text-[#A9A5A0]"); });
@@ -154,24 +157,36 @@
                 });
             });
 
+            // 1. 【安全第一】サーバーとの通信を待たずに、最速でローカルのバックアップから枠を描画する
+            const savedData = localStorage.getItem("gemini_saved_menu_data");
+            if (savedData) { try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {} }
+            
+            initializeWeeklyMenuArray();
+            renderAll(); // 🌟ここで開いた瞬間に100%確実に白紙（または過去データ）の枠が物理出現します！
+
+            // 2. 【非同期同期】：枠が出た「後」に、裏側でCORSエラーを防ぐクリーンなfetchを飛ばしてクラウドと同期する
             try {
-                const response = await fetch(GAS_URL);
+                // ブラウザによるCORS遮断を防ぐため、モードを指定し、エラーが起きても全体を巻き添えにしないよう完全隔離
+                const response = await fetch(GAS_URL, { method: "GET", mode: "cors" });
                 if (response.ok) {
                     const resJson = await response.json();
-                    if (resJson.status === "success" && resJson.data) weeklyMenu = resJson.data.menus || [];
+                    if (resJson.status === "success" && resJson.data) {
+                        weeklyMenu = resJson.data.menus || [];
+                        initializeWeeklyMenuArray();
+                        renderAll(); // クラウドに最新があれば、ふわっと画面を最新に差し替える
+                        console.log("クラウド金庫との自動同期に成功しました。");
+                    }
                 }
             } catch (err) {
-                console.warn("金庫データ同期失敗。ローカル復元します。", err);
-                const savedData = localStorage.getItem("gemini_saved_menu_data");
-                if (savedData) { try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {} }
+                console.log("クラウド同期はスキップされ、ローカルノートモードで安全稼働中。");
             }
-            initializeWeeklyMenuArray();
-            renderAll();
         });
 
         function initializeWeeklyMenuArray() {
             const tempMap = {};
-            weeklyMenu.forEach(m => { if(m && m.day) tempMap[m.day] = m; });
+            if (Array.isArray(weeklyMenu)) {
+                weeklyMenu.forEach(m => { if(m && m.day) tempMap[m.day] = m; });
+            }
             weeklyMenu = DAYS_LIST.map(dayName => tempMap[dayName] || { day: dayName, is_empty: true });
         }
 
@@ -185,8 +200,43 @@
             }
         }
 
-        // 💡【論理の修正・機能強化】：指数バックオフによる503自動リトライ機構の完全マウント
-        async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 3, initialDelay = 1500) {
+        btnResetAll.addEventListener("click", async () => {
+            if (confirm("すべての献立ノートと買い物リストの履歴を消去しますか？")) {
+                localStorage.removeItem("gemini_saved_menu_data");
+                localStorage.removeItem("gemini_checked_items");
+                try {
+                    await fetch(GAS_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "text/plain" },
+                        body: JSON.stringify({ action: "save_db_menu", menuData: null })
+                    });
+                } catch(e) {}
+                window.location.reload();
+            }
+        });
+
+        btnToggleConfig.addEventListener("click", () => configPanel.classList.toggle("hidden"));
+        btnSaveKey.addEventListener("click", () => {
+            localStorage.setItem("gemini_user_api_key", inputApiKey.value.trim());
+            alert("APIキーを保存しました。");
+        });
+        btnClearKey.addEventListener("click", () => {
+            localStorage.removeItem("gemini_user_api_key");
+            inputApiKey.value = "";
+            alert("個別キーを消去しました。");
+        });
+
+        function startLoaderAnimation() {
+            let p = 0; loaderBar.style.width = "0%";
+            loaderInterval = setInterval(() => { p += Math.random() * 12; if (p > 95) p = 95; loaderBar.style.width = `${p}%`; }, 300);
+        }
+        function stopLoaderAnimation() {
+            if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
+            loaderBar.style.width = "100%";
+        }
+
+        // --- 3. 指数バックオフ付きAPI通信中継関数（2.5-flash専用設計） ---
+        async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 4, initialDelay = 1500) {
             const userKey = localStorage.getItem("gemini_user_api_key") || "";
             const payload = { prompt: prompt, systemInstruction: systemInstruction, schema: schema, userKey: userKey };
             let currentDelay = initialDelay;
@@ -201,15 +251,13 @@
                     
                     if (response.ok) {
                         const resJson = await response.json();
-                        // GAS側がエラーオブジェクトを返してきた場合
                         if (resJson && resJson.error) {
                             const parsedErr = parseFriendlyErrorMessage(resJson.message);
-                            // 💡 503混雑の場合は、例外を投げずにこのループ内で自動リトライを敢行する
                             if (parsedErr.is_503 && i < retries - 1) {
                                 const statusText = document.getElementById("loader-status");
-                                if (statusText) statusText.innerText = `【混雑回避】サーバーが混み合っています。自動再試行中... (${i+1}/${retries}回目)`;
+                                if (statusText) statusText.innerText = `【混雑回避】サーバー混雑中。自動再試行しています... (${i+1}/${retries}回目)`;
                                 await new Promise(r => setTimeout(r, currentDelay));
-                                currentDelay *= 2; // 待機時間を段階的に伸ばす
+                                currentDelay *= 2;
                                 continue;
                             }
                             throw new Error(parsedErr.msg);
@@ -225,7 +273,6 @@
             throw new Error("AIサーバーの混雑が続いています。15秒ほど時間を置いてから、もう一度ボタンを押してください。");
         }
 
-        // 💡【監査による修正】：エラーコードのパースと日本語化を高度に分離
         function parseFriendlyErrorMessage(rawErrorText) {
             let is_503 = false;
             let msg = rawErrorText;
@@ -269,9 +316,7 @@
             let reqFree = weeklyFree.value.trim() ? `伝言: ${weeklyFree.value.trim()}` : "";
             if (customReason) reqFree += ` (※この日の変更リクエスト: ${customReason})`;
 
-            let p = 0; loaderBar.style.width = "0%";
-            loaderInterval = setInterval(() => { p += Math.random() * 12; if (p > 95) p = 95; loaderBar.style.width = `${p}%`; }, 300);
-            
+            startLoaderAnimation();
             const statusText = document.getElementById("loader-status");
             if (statusText) statusText.innerText = `AI栄養士が【${dayName}】の専用ノートを書き込んでいます...`;
             loader.classList.remove("hidden");
@@ -306,13 +351,10 @@
             }
         };
 
-        // 💡【監査によるバグ修正】：雪だるま式の文字累積バグを駆逐した綺麗な再生成窓
         window.reBuildSingleDay = async function(dayName, idx) {
             const inputEl = document.getElementById(`change-input-${idx}`);
             const reason = inputEl ? inputEl.value.trim() : "";
             if(!reason) { alert("変更したい理由を入力してください。"); return; }
-            
-            // グローバルなテキストエリアを汚染せず、引数としてクリーンに個別リクエストを射出
             await window.buildSingleDayMenu(dayName, idx, reason);
             inputEl.value = "";
         };
@@ -323,7 +365,7 @@
             tabContentMenus.innerHTML = "";
             weeklyMenu.forEach((m, idx) => {
                 const card = document.createElement("div");
-                if (m.is_empty) {
+                if (!m || m.is_empty) {
                     card.className = "bg-white/40 rounded-3xl border-2 border-dashed border-[#F1ECE6] p-6 text-center space-y-3 fade-in";
                     card.innerHTML = `
                         <div class="flex items-center justify-between border-b pb-2"><span class="text-xs font-bold text-[#A9A5A0] bg-slate-100 px-4 py-1.5 rounded-full font-handwriting">${DAYS_LIST[idx]}</span></div>
@@ -364,7 +406,6 @@
             else { content.classList.add("hidden"); icon.classList.remove("rotate-180"); label.innerText = "レシピ・材料を見る"; }
         };
 
-        // 💡【監査によるデータ強化】：表記揺れを一網打尽にする強固な買い物リスト集計ロジック
         function renderMergedShoppingList() {
             shoppingGrid.innerHTML = "";
             const sections = { "① お野菜・フルーツ": [], "② お肉・お魚": [], "③ 豆腐・牛乳・調味料": [] };
@@ -374,7 +415,6 @@
                 dayMenu.day_shopping.forEach(block => {
                     let sec = block.section || "";
                     let targetSec = "③ 豆腐・牛乳・調味料";
-                    // 1文字でも該当ワードが入っていれば強硬マッピング
                     if (/野菜|果物|青果|フルーツ|芋|大根|トマト|キャベツ|ネギ/.test(sec)) targetSec = "① お野菜・フルーツ";
                     else if (/肉|魚|鮮魚|精肉|海鮮|エビ|鶏|豚|牛/.test(sec)) targetSec = "② お肉・お魚";
                     
