@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght=400;500;700&family=Noto+Sans+JP:wght=400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
         body { font-family: 'Noto Sans JP', sans-serif; background-color: #FAF8F5; color: #3D3A45; }
         .font-handwriting { font-family: 'Kiwi Maru', sans-serif; }
         .soft-card { box-shadow: 0 10px 25px -5px rgba(224, 122, 95, 0.04), 0 8px 10px -6px rgba(224, 122, 95, 0.04); border: 1px solid #F1ECE6; }
@@ -128,7 +128,7 @@
         let selectedWeeklyIngredients = [];
         let loaderInterval = null;
 
-        // 💡【完全防壁化】CORSやサーバーエラーによる画面全滅を100%防ぐ最強の起動シーケンス
+        // 💡【Consoleクラッシュ絶対防御】：何が起きてもまず確実に画面の枠組みをマウントする
         document.addEventListener("DOMContentLoaded", async () => {
             restoreWeeklyPatterns();
             if (localStorage.getItem("gemini_user_api_key")) inputApiKey.value = localStorage.getItem("gemini_user_api_key");
@@ -157,31 +157,39 @@
                 });
             });
 
-            // 🌟【最優先】まず手元のバックアップから5日分の枠組みを何が何でも即時物理出現させる
+            // 🌟 1. 【安全第一】：通信の前に、ローカルバックアップから最速で枠を画面にマウント
             const savedData = localStorage.getItem("gemini_saved_menu_data");
             if (savedData) { try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {} }
             
             initializeWeeklyMenuArray();
-            renderAll(); // これにより、通信する前に白紙のノートが100%画面に出ます！
+            renderAll(); // 🌟ここで開いた瞬間に100%確実に白紙（または過去データ）の枠が物理出現します！
 
-            // 🌟【完全隔離同期】CORSポリシーを100%回避する、安全なテキストGET同期ルート
+            // 🌟 2. 【安全同期】：サーバーからの返答が空（null）やHTMLの塊であっても、絶対にフリーズさせない鉄壁のガード
             try {
                 const response = await fetch(GAS_URL);
                 if (response.ok) {
                     const textData = await response.text();
-                    // EMPTY_DB（まだクラウドにない）でもHTMLの塊でもない、純粋なJSON文字列の時だけ安全にマージする
+                    
+                    // 💡【ログ原因の完全パースデバッグ】：GoogleのエラーHTMLや空文字、金庫空っぽ（EMPTY_DB）を完璧に弾き飛ばす
                     if (textData && textData !== "EMPTY_DB" && !textData.trim().startsWith("<!DOCTYPE")) {
                         const parsedServer = JSON.parse(textData);
-                        if (parsedServer && parsedServer.menus) {
+                        
+                        // 💡【Consoleログの真犯人を撃破】：サーバーデータの階層構造を極めて安全にオプショナルチェック
+                        if (parsedServer && parsedServer.data && Array.isArray(parsedServer.data.menus)) {
+                            weeklyMenu = parsedServer.data.menus;
+                            initializeWeeklyMenuArray();
+                            renderAll();
+                            console.log("家族クラウド金庫との自動同期に成功しました。");
+                        } else if (parsedServer && Array.isArray(parsedServer.menus)) {
+                            // 古いデータ構造の救済ルート
                             weeklyMenu = parsedServer.menus;
                             initializeWeeklyMenuArray();
                             renderAll();
-                            console.log("家族クラウド金庫から最新ノートの完全同期に成功しました。");
                         }
                     }
                 }
             } catch (err) {
-                console.log("クラウドがオフラインまたは初期状態のため、ローカルマイノートモードで安全稼働します。");
+                console.log("クラウド金庫は現在初期状態（空っぽ）です。手元のローカルノートで安全に稼働します。");
             }
         });
 
@@ -255,7 +263,6 @@
                     if (response.ok) {
                         const rawText = await response.text();
                         
-                        // 💡 GASからエラーテキスト（HTML含む）が突き返されてきた場合
                         if (rawText.startsWith("Google_API_Error_") || rawText.startsWith("GAS_Internal_Error")) {
                             const parsedErr = parseFriendlyErrorMessage(rawText);
                             if (parsedErr.is_503 && i < retries - 1) {
@@ -268,7 +275,6 @@
                             throw new Error(parsedErr.msg);
                         }
                         
-                        // 正常系：パースして返却
                         return JSON.parse(rawText);
                     }
                 } catch (e) {
@@ -334,7 +340,6 @@
                 const cleanedText = cleanJsonString(responseText);
                 weeklyMenu[idx] = JSON.parse(cleanedText).day_menu;
 
-                // 保存と同期
                 const dataToSave = { menus: weeklyMenu };
                 localStorage.setItem("gemini_saved_menu_data", JSON.stringify(dataToSave));
                 await fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save_db_menu", menuData: dataToSave }) });
