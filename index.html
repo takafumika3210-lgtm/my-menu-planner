@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght=400;500;700&family=Noto+Sans+JP:wght=400;500;700&display=swap');
         body { font-family: 'Noto Sans JP', sans-serif; background-color: #FAF8F5; color: #3D3A45; }
         .font-handwriting { font-family: 'Kiwi Maru', sans-serif; }
         .soft-card { box-shadow: 0 10px 25px -5px rgba(224, 122, 95, 0.04), 0 8px 10px -6px rgba(224, 122, 95, 0.04); border: 1px solid #F1ECE6; }
@@ -128,12 +128,49 @@
         let selectedWeeklyIngredients = [];
         let loaderInterval = null;
 
-        // 💡【Consoleクラッシュ絶対防御】：何が起きてもまず確実に画面の枠組みをマウントする
-        document.addEventListener("DOMContentLoaded", async () => {
+        // 💡【最優先マウント】：何が起きてもまず100%確実に白紙ノートを最速で画面に出現させる
+        document.addEventListener("DOMContentLoaded", () => {
             restoreWeeklyPatterns();
-            if (localStorage.getItem("gemini_user_api_key")) inputApiKey.value = localStorage.getItem("gemini_user_api_key");
+            if (localStorage.getItem("gemini_user_api_key")) {
+                const configIn = document.getElementById("input-api-key");
+                if (configIn) configIn.value = localStorage.getItem("gemini_user_api_key");
+            }
 
-            // タグのイベント登録
+            // イベント登録を最速で安全に完了させる
+            setupEventListeners();
+
+            // 🌟ローカルのバックアップから即時マウント（これで真っ白は物理的に防がれます）
+            const savedData = localStorage.getItem("gemini_saved_menu_data");
+            if (savedData) { try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {} }
+            
+            initializeWeeklyMenuArray();
+            renderAll(); 
+
+            // 🌟画面が完全に出現した「あと」から、裏側でエラーを完全隔離してクラウドと同期する
+            setTimeout(async () => {
+                try {
+                    const response = await fetch(GAS_URL);
+                    if (response.ok) {
+                        const textData = await response.text();
+                        if (textData && textData !== "EMPTY_DB" && !textData.trim().startsWith("<!DOCTYPE")) {
+                            const parsedServer = JSON.parse(textData);
+                            if (parsedServer && parsedServer.menus) {
+                                weeklyMenu = parsedServer.menus;
+                            } else if (parsedServer && parsedServer.data && parsedServer.data.menus) {
+                                weeklyMenu = parsedServer.data.menus;
+                            }
+                            initializeWeeklyMenuArray();
+                            renderAll();
+                            console.log("家族クラウド金庫との自動同期に成功しました。");
+                        }
+                    }
+                } catch (err) {
+                    console.log("クラウド初期状態のためローカルノートで安全稼働します。");
+                }
+            }, 100);
+        });
+
+        function setupEventListeners() {
             document.querySelectorAll(".tag-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const val = btn.getAttribute("data-val");
@@ -147,7 +184,6 @@
                 });
             });
 
-            // タブのイベント登録
             document.querySelectorAll(".tab-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     document.querySelectorAll(".tab-btn").forEach(b => { b.classList.remove("bg-[#E07A5F]", "text-white"); b.classList.add("text-[#A9A5A0]"); });
@@ -157,41 +193,19 @@
                 });
             });
 
-            // 🌟 1. 【安全第一】：通信の前に、ローカルバックアップから最速で枠を画面にマウント
-            const savedData = localStorage.getItem("gemini_saved_menu_data");
-            if (savedData) { try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {} }
-            
-            initializeWeeklyMenuArray();
-            renderAll(); // 🌟ここで開いた瞬間に100%確実に白紙（または過去データ）の枠が物理出現します！
-
-            // 🌟 2. 【安全同期】：サーバーからの返答が空（null）やHTMLの塊であっても、絶対にフリーズさせない鉄壁のガード
-            try {
-                const response = await fetch(GAS_URL);
-                if (response.ok) {
-                    const textData = await response.text();
-                    
-                    // 💡【ログ原因の完全パースデバッグ】：GoogleのエラーHTMLや空文字、金庫空っぽ（EMPTY_DB）を完璧に弾き飛ばす
-                    if (textData && textData !== "EMPTY_DB" && !textData.trim().startsWith("<!DOCTYPE")) {
-                        const parsedServer = JSON.parse(textData);
-                        
-                        // 💡【Consoleログの真犯人を撃破】：サーバーデータの階層構造を極めて安全にオプショナルチェック
-                        if (parsedServer && parsedServer.data && Array.isArray(parsedServer.data.menus)) {
-                            weeklyMenu = parsedServer.data.menus;
-                            initializeWeeklyMenuArray();
-                            renderAll();
-                            console.log("家族クラウド金庫との自動同期に成功しました。");
-                        } else if (parsedServer && Array.isArray(parsedServer.menus)) {
-                            // 古いデータ構造の救済ルート
-                            weeklyMenu = parsedServer.menus;
-                            initializeWeeklyMenuArray();
-                            renderAll();
-                        }
-                    }
-                }
-            } catch (err) {
-                console.log("クラウド金庫は現在初期状態（空っぽ）です。手元のローカルノートで安全に稼働します。");
-            }
-        });
+            [document.getElementById("pattern-mon"), document.getElementById("pattern-tue"), document.getElementById("pattern-wed"), document.getElementById("pattern-thu"), document.getElementById("pattern-fri")].forEach(el => {
+                if (el) el.addEventListener("change", () => {
+                    const patterns = {
+                        mon: document.getElementById("pattern-mon").value,
+                        tue: document.getElementById("pattern-tue").value,
+                        wed: document.getElementById("pattern-wed").value,
+                        thu: document.getElementById("pattern-thu").value,
+                        fri: document.getElementById("pattern-fri").value
+                    };
+                    localStorage.setItem("gemini_weekly_patterns", JSON.stringify(patterns));
+                });
+            });
+        }
 
         function initializeWeeklyMenuArray() {
             const tempMap = {};
@@ -206,13 +220,17 @@
             if (saved) {
                 try {
                     const p = JSON.parse(saved);
-                    if (p.mon) patternMon.value = p.mon; if (p.tue) patternTue.value = p.tue; if (p.wed) patternWed.value = p.wed; if (p.thu) patternThu.value = p.thu; if (p.fri) patternFri.value = p.fri;
+                    if (p.mon && document.getElementById("pattern-mon")) document.getElementById("pattern-mon").value = p.mon;
+                    if (p.tue && document.getElementById("pattern-tue")) document.getElementById("pattern-tue").value = p.tue;
+                    if (p.wed && document.getElementById("pattern-wed")) document.getElementById("pattern-wed").value = p.wed;
+                    if (p.thu && document.getElementById("pattern-thu")) document.getElementById("pattern-thu").value = p.thu;
+                    if (p.fri && document.getElementById("pattern-fri")) document.getElementById("pattern-fri").value = p.fri;
                 } catch (e) {}
             }
         }
 
-        btnResetAll.addEventListener("click", async () => {
-            if (confirm("すべての献立ノートと買い物リストの履歴を消去しますか？")) {
+        document.getElementById("btn-reset-all").addEventListener("click", async () => {
+            if (confirm("すべての献立ノートをリセットしますか？")) {
                 localStorage.removeItem("gemini_saved_menu_data");
                 localStorage.removeItem("gemini_checked_items");
                 try {
@@ -226,16 +244,9 @@
             }
         });
 
-        btnToggleConfig.addEventListener("click", () => configPanel.classList.toggle("hidden"));
-        btnSaveKey.addEventListener("click", () => {
-            localStorage.setItem("gemini_user_api_key", inputApiKey.value.trim());
-            alert("APIキーを保存しました。");
-        });
-        btnClearKey.addEventListener("click", () => {
-            localStorage.removeItem("gemini_user_api_key");
-            inputApiKey.value = "";
-            alert("個別キーを消去しました。");
-        });
+        document.getElementById("btn-toggle-config").addEventListener("click", () => configPanel.classList.toggle("hidden"));
+        document.getElementById("btn-save-key").addEventListener("click", () => { localStorage.setItem("gemini_user_api_key", document.getElementById("input-api-key").value.trim()); alert("保存完了"); });
+        document.getElementById("btn-clear-key").addEventListener("click", () => { localStorage.removeItem("gemini_user_api_key"); document.getElementById("input-api-key").value = ""; alert("消去完了"); });
 
         function startLoaderAnimation() {
             let p = 0; loaderBar.style.width = "0%";
@@ -246,7 +257,7 @@
             loaderBar.style.width = "100%";
         }
 
-        // --- 3. 指数バックオフ付きAPI通信中継関数 ---
+        // --- 3. 指数バックオフ付きAPI通信中継関数（大文字小文字完全クレンジング版） ---
         async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 4, initialDelay = 2000) {
             const userKey = localStorage.getItem("gemini_user_api_key") || "";
             const payload = { prompt: prompt, systemInstruction: systemInstruction, schema: schema, userKey: userKey };
@@ -262,12 +273,14 @@
                     
                     if (response.ok) {
                         const rawText = await response.text();
+                        const upperText = rawText.toUpperCase();
                         
-                        if (rawText.startsWith("Google_API_Error_") || rawText.startsWith("GAS_Internal_Error")) {
+                        // 💡【赤字バグ完全修正】：503やエラー文字列の有無を100%確実に大文字小文字無視でキャッチする
+                        if (upperText.includes("GOOGLE_API_ERROR_") || upperText.includes("GAS_INTERNAL_ERROR") || upperText.includes("UNAVAILABLE") || upperText.includes("503")) {
                             const parsedErr = parseFriendlyErrorMessage(rawText);
                             if (parsedErr.is_503 && i < retries - 1) {
                                 const statusText = document.getElementById("loader-status");
-                                if (statusText) statusText.innerText = `【混雑回避】サーバーが大変混み合っています。自動再試行中... (${i+1}/${retries}回目)`;
+                                if (statusText) statusText.innerText = `【混雑回避】サーバー混雑中。自動再試行しています... (${i+1}/${retries}回目)`;
                                 await new Promise(r => setTimeout(r, currentDelay));
                                 currentDelay *= 2;
                                 continue;
@@ -275,6 +288,7 @@
                             throw new Error(parsedErr.msg);
                         }
                         
+                        // すでにパースできる綺麗なJSONテキストとして返却
                         return JSON.parse(rawText);
                     }
                 } catch (e) {
@@ -289,12 +303,13 @@
         function parseFriendlyErrorMessage(rawErrorText) {
             let is_503 = false;
             let msg = "【通信エラー】一時的にAIとの通信に失敗しました。もう一度お試しください。";
+            const testText = rawErrorText.toUpperCase();
             
-            if (rawErrorText.includes("503") || rawErrorText.includes("UNAVAILABLE")) {
+            if (testText.includes("503") || testText.includes("UNAVAILABLE")) {
                 is_503 = true;
-                msg = "【AIサーバー混雑】現在GoogleのAIサーバーが大変混み合っています。一時的なものですので、少し時間を置いてから再度お試しください。";
-            } else if (rawErrorText.includes("429") || rawErrorText.includes("RESOURCE_EXHAUSTED")) {
-                msg = "【リクエスト過剰】短時間に通信が集中しました。1分ほど待ってからもう一度お試しください。";
+                msg = "【AIサーバー混雑】現在GoogleのAIサーバーが大変混み合っています。一時的なものですので、15秒ほど待ってからもう一度お試しください。";
+            } else if (testText.includes("429") || testText.includes("EXHAUSTED")) {
+                msg = "【リクエスト過剰】短時間にボタンが連打されました。1分ほど待ってからもう一度お試しください。";
             }
             return { is_503, msg };
         }
@@ -315,6 +330,7 @@
             required: ["day_menu"]
         };
 
+        // 💡【コア関数の大改修】：二重パースバグを100%全滅させた、最新世代AI専用のデータ格納処理
         window.buildSingleDayMenu = async function(dayName, idx, customReason = "") {
             const selectEl = document.getElementById(`pattern-${dayName === '月曜日' ? 'mon' : dayName === '火曜日' ? 'tue' : dayName === '水曜日' ? 'wed' : dayName === '木曜日' ? 'thu' : 'fri'}`);
             const currentRule = selectEl ? selectEl.value : "おまかせ";
@@ -334,12 +350,31 @@
 
             try {
                 const apiResponse = await fetchGeminiAPI(prompt, systemInstruction, singleDayProductionSchema);
-                const responseText = apiResponse.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (!responseText) throw new Error("AIからの応答が空でした。");
+                
+                // 💡【最重要デバッグファクト】：二重パースバグの防御壁を完全に構築
+                let dayMenuObject = null;
+                
+                if (apiResponse && apiResponse.day_menu) {
+                    // ケースA：すでに剥き出しのパース済みJSONオブジェクトが届いた場合（現状のGAS仕様）
+                    dayMenuObject = apiResponse.day_menu;
+                } else if (apiResponse && apiResponse.candidates && apiResponse.candidates[0]?.content?.parts[0]?.text) {
+                    // ケースB：Googleの生の包み紙の状態で届いた場合（フォールバック用）
+                    const txt = cleanJsonString(apiResponse.candidates[0].content.parts[0].text);
+                    dayMenuObject = JSON.parse(txt).day_menu;
+                } else if (typeof apiResponse === "string") {
+                    // ケースC：文字列で届いた場合
+                    const txt = cleanJsonString(apiResponse);
+                    dayMenuObject = JSON.parse(txt).day_menu;
+                }
 
-                const cleanedText = cleanJsonString(responseText);
-                weeklyMenu[idx] = JSON.parse(cleanedText).day_menu;
+                if (!dayMenuObject) {
+                    throw new Error("データの解析に失敗しました。もう一度だけ生成ボタンを押してください。");
+                }
 
+                // 完成データを配列の指定曜日スロットに格納
+                weeklyMenu[idx] = dayMenuObject;
+
+                // 保存と同期
                 const dataToSave = { menus: weeklyMenu };
                 localStorage.setItem("gemini_saved_menu_data", JSON.stringify(dataToSave));
                 await fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save_db_menu", menuData: dataToSave }) });
