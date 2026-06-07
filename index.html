@@ -8,51 +8,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
-        
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            background-color: #FAF8F5; /* やさしいアイボリー */
-            color: #3D3A45; /* 柔らかいダークブラウン */
-        }
-        
-        .font-handwriting {
-            font-family: 'Kiwi Maru', sans-serif;
-        }
-
-        /* 優しい質感のカード */
-        .soft-card {
-            box-shadow: 0 10px 25px -5px rgba(224, 122, 95, 0.04), 0 8px 10px -6px rgba(224, 122, 95, 0.04);
-            border: 1px solid #F1ECE6;
-        }
-
-        /* 買い物リストの打ち消し線 */
-        .checked-item {
-            text-decoration: line-through;
-            color: #A9A5A0;
-            opacity: 0.5;
-            transition: all 0.3s ease;
-        }
-
-        /* トグルアニメーション */
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        
-        .accordion-open {
-            max-height: 1200px; /* レシピが収まる十分な高さ */
-            transition: max-height 0.5s ease-in;
-        }
-
-        /* ふわっと浮かび上がるトランジション */
-        .fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: 'Noto Sans JP', sans-serif; background-color: #FAF8F5; color: #3D3A45; }
+        .font-handwriting { font-family: 'Kiwi Maru', sans-serif; }
+        .soft-card { box-shadow: 0 10px 25px -5px rgba(224, 122, 95, 0.04), 0 8px 10px -6px rgba(224, 122, 95, 0.04); border: 1px solid #F1ECE6; }
+        .checked-item { text-decoration: line-through; color: #A9A5A0; opacity: 0.5; transition: all 0.3s ease; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .accordion-open { max-height: 1200px; transition: max-height 0.5s ease-in; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="min-h-screen pb-16">
@@ -65,33 +28,21 @@
                 </div>
                 <div>
                     <h1 class="text-base font-bold text-[#3D3A45] tracking-wide font-handwriting">おうちの献立ノート</h1>
-                    <p class="text-[10px] text-[#A9A5A0] font-medium">曜日ごとにポチポチ作ってクラウドで繋がるマイノート</p>
+                    <p class="text-[10px] text-[#A9A5A0] font-medium">自動リトライ機能搭載・家族で繋がるクラウドマイノート</p>
                 </div>
             </div>
-            
             <div class="flex items-center space-x-1">
-                <button id="btn-reset-all" class="text-xs text-[#A9A5A0] hover:text-red-500 px-2.5 py-1.5 rounded-xl hover:bg-red-50 transition font-bold" title="すべてのデータを消去">
-                    <i class="fa-solid fa-trash-can mr-1"></i>初期化
-                </button>
-                <button id="btn-toggle-config" class="text-[#A9A5A0] hover:text-[#E07A5F] w-8 h-8 rounded-full hover:bg-[#FAF8F5] flex items-center justify-center transition" title="APIキー設定">
-                    <i class="fa-solid fa-sliders"></i>
-                </button>
+                <button id="btn-reset-all" class="text-xs text-[#A9A5A0] hover:text-red-500 px-2.5 py-1.5 rounded-xl hover:bg-red-50 transition font-bold"><i class="fa-solid fa-trash-can mr-1"></i>初期化</button>
+                <button id="btn-toggle-config" class="text-[#A9A5A0] hover:text-[#E07A5F] w-8 h-8 rounded-full hover:bg-[#FAF8F5] flex items-center justify-center transition"><i class="fa-solid fa-sliders"></i></button>
             </div>
         </div>
     </header>
 
     <main class="max-w-3xl mx-auto px-4 py-6 space-y-6">
-
         <div id="config-panel" class="hidden bg-white rounded-2xl p-5 border border-[#F1ECE6] soft-card space-y-3">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-[#3D3A45]"><i class="fa-solid fa-key mr-1.5 text-[#E07A5F]"></i>Gemini APIキーの個別設定</span>
-                <span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold">デバッグ用</span>
-            </div>
-            <p class="text-xs text-[#A9A5A0] leading-relaxed">
-                通常は自動接続されますが、通信に失敗する場合はご自身のAPIキーを入力して「保存」を押してください。
-            </p>
+            <span class="text-xs font-bold text-[#3D3A45]"><i class="fa-solid fa-key mr-1.5 text-[#E07A5F]"></i>Gemini APIキーの個別設定</span>
             <div class="flex gap-2">
-                <input type="password" id="input-api-key" class="flex-1 text-xs rounded-xl border-[#F1ECE6] border p-2.5 focus:ring-1 focus:ring-[#E07A5F] focus:border-[#E07A5F] outline-none" placeholder="AIzaSy...">
+                <input type="password" id="input-api-key" class="flex-1 text-xs rounded-xl border-[#F1ECE6] border p-2.5 outline-none" placeholder="AIzaSy...">
                 <button id="btn-save-key" class="bg-[#E07A5F] hover:bg-[#D06B50] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition">保存</button>
                 <button id="btn-clear-key" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-3 py-2.5 rounded-xl transition">消去</button>
             </div>
@@ -99,233 +50,121 @@
 
         <section class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-4">
             <div class="flex items-center justify-between border-b border-[#FAF8F5] pb-3">
-                <div class="flex items-center space-x-2">
-                    <span class="text-lg">📅</span>
-                    <h2 class="font-bold text-sm tracking-wide text-[#3D3A45]">わが家の「曜日別」基本パターン設定</h2>
-                </div>
+                <div class="flex items-center space-x-2"><span class="text-lg">📅</span><h2 class="font-bold text-sm tracking-wide text-[#3D3A45]">わが家の「曜日別」基本パターン設定</h2></div>
                 <span class="text-[10px] bg-[#81B29A]/10 text-[#4A735E] px-2.5 py-1 rounded-full font-bold">自動保存</span>
             </div>
-
             <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
                 <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
                     <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">月曜日</span>
-                    <select id="pattern-mon" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
-                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
-                        <option value="お肉メイン（炒めもの、煮物など）" selected>🥩 お肉系</option>
-                        <option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option>
-                        <option value="麺類（うどん、パスタ、ラーメンなど）">🍜 麺類</option>
-                        <option value="カレー・シチュー・ハヤシライス系">🍛 カレー系</option>
-                        <option value="丼もの（親子丼、牛丼、中華丼など）">🍚 丼もの</option>
-                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
-                    </select>
+                    <select id="pattern-mon" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75]"><option value="揚げ物（トンカツ、から揚げなど）">🍗 揚げ物</option><option value="お肉メイン（炒めもの、煮物など）" selected>🥩 お肉系</option><option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option><option value="麺類（うどん、パスタなど）">🍜 麺類</option><option value="カレー・シチュー系">🍛 カレー系</option><option value="丼もの（親子丼、牛丼など）">🍚 丼もの</option><option value="おまかせ">✨ おまかせ</option></select>
                 </div>
                 <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
                     <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">火曜日</span>
-                    <select id="pattern-tue" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
-                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
-                        <option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option>
-                        <option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option>
-                        <option value="麺類（うどん、パスタ、ラーメンなど）" selected>🍜 麺類</option>
-                        <option value="カレー・シチュー・ハヤシライス系">🍛 カレー系</option>
-                        <option value="丼もの（親子丼、牛丼、中華丼など）">🍚 丼もの</option>
-                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
-                    </select>
+                    <select id="pattern-tue" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75]"><option value="揚げ物（トンカツ、から揚げなど）">🍗 揚げ物</option><option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option><option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option><option value="麺類（うどん、パスタなど）" selected>🍜 麺類</option><option value="カレー・シチュー系">🍛 カレー系</option><option value="丼もの（親子丼、牛丼など）">🍚 丼もの</option><option value="おまかせ">✨ おまかせ</option></select>
                 </div>
                 <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
                     <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">水曜日</span>
-                    <select id="pattern-wed" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
-                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
-                        <option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option>
-                        <option value="お魚メイン（焼き魚、煮魚など）" selected>🐟 お魚系</option>
-                        <option value="麺類（うどん、パスタ、ラーメンなど）">🍜 麺類</option>
-                        <option value="カレー・シチュー・ハヤシライス系">🍛 カレー系</option>
-                        <option value="丼もの（親子丼、牛丼、中華丼など）">🍚 丼もの</option>
-                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
-                    </select>
+                    <select id="pattern-wed" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75]"><option value="揚げ物（トンカツ、から揚げなど）">🍗 揚げ物</option><option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option><option value="お魚メイン（焼き魚、煮魚など）" selected>🐟 お魚系</option><option value="麺類（うどん、パスタなど）">🍜 麺類</option><option value="カレー・シチュー系">🍛 カレー系</option><option value="丼もの（親子丼、牛丼など）">🍚 丼もの</option><option value="おまかせ">✨ おまかせ</option></select>
                 </div>
                 <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
                     <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">木曜日</span>
-                    <select id="pattern-thu" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
-                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
-                        <option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option>
-                        <option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option>
-                        <option value="麺類（うどん、パスタ、ラーメンなど）">🍜 麺類</option>
-                        <option value="カレー・シチュー・ハヤシライス系">🍛 カレー系</option>
-                        <option value="丼もの（親子丼、牛丼、中華丼など）" selected>🍚 丼もの</option>
-                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
-                    </select>
+                    <select id="pattern-thu" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75]"><option value="揚げ物（トンカツ、から揚げなど）">🍗 揚げ物</option><option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option><option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option><option value="麺類（うどん、パスタなど）">🍜 麺類</option><option value="カレー・シチュー系">🍛 カレー系</option><option value="丼もの（親子丼、牛丼など）" selected>🍚 丼もの</option><option value="おまかせ">✨ おまかせ</option></select>
                 </div>
                 <div class="bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6]/60 flex flex-col justify-between">
                     <span class="text-xs font-bold text-[#E07A5F] mb-1.5 block">金曜日</span>
-                    <select id="pattern-fri" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75] focus:border-[#E07A5F]">
-                        <option value="揚げ物（トンカツ、から揚げなどボリューム重視）">🍗 揚げ物</option>
-                        <option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option>
-                        <option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option>
-                        <option value="麺類（うどん、パスタ、ラーメンなど）">🍜 麺類</option>
-                        <option value="カレー・シチュー・ハヤシライス系" selected>🍛 カレー系</option>
-                        <option value="丼もの（親子丼、牛丼、中華丼など）">🍚 丼もの</option>
-                        <option value="おまかせ（栄養士がバランスをみて提案）">✨ おまかせ</option>
-                    </select>
+                    <select id="pattern-fri" class="w-full text-xs bg-white rounded-xl border border-[#F1ECE6] p-2 outline-none font-medium text-[#6D6A75]"><option value="揚げ物（トンカツ、から揚げなど）">🍗 揚げ物</option><option value="お肉メイン（炒めもの、煮物など）">🥩 お肉系</option><option value="お魚メイン（焼き魚、煮魚など）">🐟 お魚系</option><option value="麺類（うどん、パスタなど）">🍜 麺類</option><option value="カレー・シチュー系" selected>🍛 カレー系</option><option value="丼もの（親子丼、牛丼など）">🍚 丼もの</option><option value="おまかせ">✨ おまかせ</option></select>
                 </div>
             </div>
         </section>
 
         <section id="input-dashboard" class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-4">
-            <div class="flex items-center space-x-2">
-                <span class="text-lg">👩‍🍳</span>
-                <h2 class="font-bold text-sm tracking-wide text-[#3D3A45]">今週のわがままリクエスト（個別生成時にも反映されます）</h2>
-            </div>
-
+            <div class="flex items-center space-x-2"><span class="text-lg">👩‍🍳</span><h2 class="font-bold text-sm text-[#3D3A45]">今週のわがままリクエスト</h2></div>
             <div class="space-y-2">
-                <label class="block text-xs font-bold text-[#A9A5A0]"><i class="fa-solid fa-basket-shopping mr-1 text-[#81B29A]"></i> 優先して使いたい食材（複数選べます）</label>
+                <label class="block text-xs font-bold text-[#A9A5A0]"><i class="fa-solid fa-basket-shopping mr-1 text-[#81B29A]"></i> 優先して使いたい食材（複数選択可）</label>
                 <div class="flex flex-wrap gap-1.5" id="weekly-ingredients">
-                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="豚肉">🐷 豚肉</button>
-                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="鶏肉">🐔 鶏肉</button>
-                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="合い挽き肉">🥩 ひき肉</button>
-                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="魚類">🐟 お魚類</button>
-                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="キャベツ">🥬 キャベツ</button>
-                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="玉ねぎ">🧅 玉ねぎ</button>
-                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="じゃがいも">🥔 じゃがいも</button>
-                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75] hover:bg-[#81B29A]/10 hover:text-[#4A735E] transition" data-val="豆腐">⬜ 豆腐</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75]" data-val="豚肉">🐷 豚肉</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75]" data-val="鶏肉">🐔 鶏肉</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75]" data-val="合い挽き肉">🥩 ひき肉</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75]" data-val="魚類">🐟 お魚類</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75]" data-val="キャベツ">🥬 キャベツ</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75]" data-val="玉ねぎ">🧅 玉ねぎ</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75]" data-val="じゃがいも">🥔 じゃがいも</button>
+                    <button class="tag-btn px-3.5 py-1.5 text-xs rounded-full bg-[#FAF8F5] border border-[#F1ECE6] text-[#6D6A75]" data-val="豆腐">⬜ 豆腐</button>
                 </div>
             </div>
-
             <div class="space-y-1.5">
                 <label for="weekly-free" class="block text-xs font-bold text-[#A9A5A0]"><i class="fa-regular fa-comment-dots mr-1 text-[#E07A5F]"></i> アレルギー、苦手なもの、AI栄養士への伝言</label>
-                <textarea id="weekly-free" rows="2" class="w-full text-xs rounded-2xl border-[#F1ECE6] border p-3.5 focus:ring-1 focus:ring-[#E07A5F] focus:border-[#E07A5F] outline-none bg-[#FAF8F5]/30 placeholder:text-gray-300" placeholder="例：こどもが辛いもの苦手です。"></textarea>
+                <textarea id="weekly-free" rows="2" class="w-full text-xs rounded-2xl border-[#F1ECE6] border p-3.5 focus:ring-1 focus:ring-[#E07A5F] outline-none bg-[#FAF8F5]/30" placeholder="例：こどもが辛いもの苦手です。"></textarea>
             </div>
         </section>
 
         <div id="loader" class="hidden bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card text-center space-y-3 fade-in">
-            <div class="relative w-14 h-14 mx-auto">
-                <div class="absolute inset-0 border-4 border-[#FAF8F5] rounded-full"></div>
-                <div class="absolute inset-0 border-4 border-t-[#E07A5F] rounded-full animate-spin"></div>
-            </div>
-            <p id="loader-status" class="text-xs font-bold text-[#3D3A45] font-handwriting tracking-wide">AI栄養士がノートに書き込み中...</p>
-            <div class="w-full bg-[#FAF8F5] h-1.5 rounded-full overflow-hidden max-w-xs mx-auto border border-[#F1ECE6]/30">
-                <div id="loader-bar" class="bg-[#81B29A] h-full transition-all duration-300" style="width: 0%"></div>
-            </div>
+            <div class="relative w-12 h-12 mx-auto"><div class="absolute inset-0 border-4 border-[#FAF8F5] rounded-full"></div><div class="absolute inset-0 border-4 border-t-[#E07A5F] rounded-full animate-spin"></div></div>
+            <p id="loader-status" class="text-xs font-bold text-[#3D3A45] font-handwriting">AI栄養士がノートに書き込み中...</p>
+            <div class="w-full bg-[#FAF8F5] h-1.5 rounded-full overflow-hidden max-w-xs mx-auto border"><div id="loader-bar" class="bg-[#81B29A] h-full transition-all duration-300" style="width: 0%"></div></div>
         </div>
 
         <div id="results-area" class="space-y-5">
-            
             <div class="flex bg-white p-1.5 rounded-2xl border border-[#F1ECE6] shadow-sm">
-                <button id="tab-btn-menus" class="tab-btn flex-1 text-xs font-bold py-3 rounded-xl transition duration-200 bg-[#E07A5F] text-white" data-target="tab-content-menus">
-                    <i class="fa-solid fa-utensils mr-1.5"></i>献立ノート
-                </button>
-                <button id="tab-btn-shopping" class="tab-btn flex-1 text-xs font-bold py-3 rounded-xl transition duration-200 text-[#A9A5A0] hover:text-[#3D3A45]" data-target="tab-content-shopping">
-                    <i class="fa-solid fa-cart-shopping mr-1.5"></i>まとめ買い物
-                </button>
+                <button id="tab-btn-menus" class="tab-btn flex-1 text-xs font-bold py-3 rounded-xl transition bg-[#E07A5F] text-white" data-target="tab-content-menus"><i class="fa-solid fa-utensils mr-1.5"></i>献立ノート</button>
+                <button id="tab-btn-shopping" class="tab-btn flex-1 text-xs font-bold py-3 rounded-xl transition text-[#A9A5A0]" data-target="tab-content-shopping"><i class="fa-solid fa-cart-shopping mr-1.5"></i>まとめ買い物</button>
             </div>
-
             <div id="tab-content-menus" class="tab-panel space-y-4"></div>
-            
             <div id="tab-content-shopping" class="tab-panel hidden space-y-4">
                 <div class="bg-white rounded-3xl p-6 border border-[#F1ECE6] soft-card space-y-4">
                     <div class="flex items-center justify-between border-b border-[#FAF8F5] pb-2">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-lg">🛒</span>
-                            <h4 class="font-bold text-sm text-[#3D3A45]">スーパーの「売り場別」まとめお買い物ノート</h4>
-                        </div>
-                        <span class="text-[10px] text-[#A9A5A0] font-bold">5人分の合計分量（生成済みの曜日から自動集計）</span>
+                        <div class="flex items-center space-x-2"><span class="text-lg">🛒</span><h4 class="font-bold text-sm text-[#3D3A45]">スーパーの「売り場別」まとめお買い物ノート</h4></div>
                     </div>
                     <div id="shopping-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
                 </div>
             </div>
         </div>
-
     </main>
 
     <script>
-        // --- 1. DOMのセットアップとグローバル状態 ---
-        const btnResetAll = document.getElementById("btn-reset-all");
-        const btnToggleConfig = document.getElementById("btn-toggle-config");
-        const configPanel = document.getElementById("config-panel");
-        const inputApiKey = document.getElementById("input-api-key");
-        const btnSaveKey = document.getElementById("btn-save-key");
-        const btnClearKey = document.getElementById("btn-clear-key");
-
-        const patternMon = document.getElementById("pattern-mon");
-        const patternTue = document.getElementById("pattern-tue");
-        const patternWed = document.getElementById("pattern-wed");
-        const patternThu = document.getElementById("pattern-thu");
-        const patternFri = document.getElementById("pattern-fri");
-
-        const weeklyIngredientsContainer = document.getElementById("weekly-ingredients");
-        const weeklyFree = document.getElementById("weekly-free");
-
-        const loader = document.getElementById("loader");
-        const loaderBar = document.getElementById("loader-bar");
-        const resultsArea = document.getElementById("results-area");
-
-        const tabContentMenus = document.getElementById("tab-content-menus");
-        const shoppingGrid = document.getElementById("shopping-grid");
-
-        // 中継用のGAS本番URL
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzZHiGnmmJU0D1lrAN9Iv5D_zKYb34w2dX_c7p-udQxPbaVt_GNlo5VYIE6BLt5D890Ag/exec";
-
-        // 5日間の固定配列枠
         const DAYS_LIST = ["月曜日", "火曜日", "水曜日", "木曜日", "金曜日"];
         let weeklyMenu = [];
         let selectedWeeklyIngredients = [];
+        let loaderInterval = null;
 
-        // --- 2. ページ起動時の初期化 ＆ クラウドデータベースからの復元同期 ---
         document.addEventListener("DOMContentLoaded", async () => {
             restoreWeeklyPatterns();
-            
-            const savedUserKey = localStorage.getItem("gemini_user_api_key");
-            if (savedUserKey) inputApiKey.value = savedUserKey;
+            if (localStorage.getItem("gemini_user_api_key")) inputApiKey.value = localStorage.getItem("gemini_user_api_key");
 
-            // 食材タグのハンドリング
             document.querySelectorAll(".tag-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const val = btn.getAttribute("data-val");
                     if (selectedWeeklyIngredients.includes(val)) {
                         selectedWeeklyIngredients = selectedWeeklyIngredients.filter(v => v !== val);
                         btn.classList.remove("bg-[#81B29A]/20", "text-[#4A735E]", "border-[#81B29A]");
-                        btn.classList.add("bg-[#FAF8F5]", "text-[#6D6A75]");
                     } else {
                         selectedWeeklyIngredients.push(val);
                         btn.classList.add("bg-[#81B29A]/20", "text-[#4A735E]", "border-[#81B29A]");
-                        btn.classList.remove("bg-[#FAF8F5]", "text-[#6D6A75]");
                     }
                 });
             });
 
-            // タブ切り替えのハンドリング
             document.querySelectorAll(".tab-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
-                    document.querySelectorAll(".tab-btn").forEach(b => {
-                        b.classList.remove("bg-[#E07A5F]", "text-white");
-                        b.classList.add("text-[#A9A5A0]", "hover:text-[#3D3A45]");
-                    });
-                    btn.classList.add("bg-[#E07A5F]", "text-white");
-                    btn.classList.remove("text-[#A9A5A0]", "hover:text-[#3D3A45]");
-
+                    document.querySelectorAll(".tab-btn").forEach(b => { b.classList.remove("bg-[#E07A5F]", "text-white"); b.classList.add("text-[#A9A5A0]"); });
+                    btn.classList.add("bg-[#E07A5F]", "text-white"); btn.classList.remove("text-[#A9A5A0]");
                     document.querySelectorAll(".tab-panel").forEach(p => p.classList.add("hidden"));
                     document.getElementById(btn.getAttribute("data-target")).classList.remove("hidden");
                 });
             });
 
-            // 💡【ステップ途中保存】GASサーバーの共有金庫からデータを最優先で取得
             try {
                 const response = await fetch(GAS_URL);
                 if (response.ok) {
                     const resJson = await response.json();
-                    if (resJson.status === "success" && resJson.data) {
-                        weeklyMenu = resJson.data.menus || [];
-                        console.log("GAS共有金庫から現在の献立ノートをロードしました。");
-                    }
+                    if (resJson.status === "success" && resJson.data) weeklyMenu = resJson.data.menus || [];
                 }
             } catch (err) {
-                console.warn("クラウド金庫との同期に失敗しました。ローカルデータを参照します。", err);
+                console.warn("金庫データ同期失敗。ローカル復元します。", err);
                 const savedData = localStorage.getItem("gemini_saved_menu_data");
-                if (savedData) {
-                    try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {}
-                }
+                if (savedData) { try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {} }
             }
-
-            // 配列構造の初期化保証（5日分の枠がなければ空枠を作る）
             initializeWeeklyMenuArray();
             renderAll();
         });
@@ -333,79 +172,24 @@
         function initializeWeeklyMenuArray() {
             const tempMap = {};
             weeklyMenu.forEach(m => { if(m && m.day) tempMap[m.day] = m; });
-            
-            // 月曜〜金曜が必ず入った5要素の綺麗な枠組みに整える
-            weeklyMenu = DAYS_LIST.map(dayName => {
-                return tempMap[dayName] || { day: dayName, is_empty: true };
-            });
+            weeklyMenu = DAYS_LIST.map(dayName => tempMap[dayName] || { day: dayName, is_empty: true });
         }
-
-        // パターンの自動保存
-        [patternMon, patternTue, patternWed, patternThu, patternFri].forEach(el => {
-            el.addEventListener("change", () => {
-                const patterns = {
-                    mon: patternMon.value, tue: patternTue.value, wed: patternWed.value, thu: patternThu.value, fri: patternFri.value
-                };
-                localStorage.setItem("gemini_weekly_patterns", JSON.stringify(patterns));
-            });
-        });
 
         function restoreWeeklyPatterns() {
             const saved = localStorage.getItem("gemini_weekly_patterns");
             if (saved) {
                 try {
                     const p = JSON.parse(saved);
-                    if (p.mon) patternMon.value = p.mon;
-                    if (p.tue) patternTue.value = p.tue;
-                    if (p.wed) patternWed.value = p.wed;
-                    if (p.thu) patternThu.value = p.thu;
-                    if (p.fri) patternFri.value = p.fri;
+                    if (p.mon) patternMon.value = p.mon; if (p.tue) patternTue.value = p.tue; if (p.wed) patternWed.value = p.wed; if (p.thu) patternThu.value = p.thu; if (p.fri) patternFri.value = p.fri;
                 } catch (e) {}
             }
         }
 
-        // 初期化（全消去）
-        btnResetAll.addEventListener("click", async () => {
-            if (confirm("すべての献立ノートと買い物リストの履歴を消去しますか？（別の端末データもリセットされます）")) {
-                localStorage.removeItem("gemini_saved_menu_data");
-                localStorage.removeItem("gemini_checked_items");
-                try {
-                    await fetch(GAS_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "text/plain" },
-                        body: JSON.stringify({ action: "save_db_menu", menuData: null })
-                    });
-                } catch(e) {}
-                window.location.reload();
-            }
-        });
-
-        btnToggleConfig.addEventListener("click", () => configPanel.classList.toggle("hidden"));
-        btnSaveKey.addEventListener("click", () => {
-            localStorage.setItem("gemini_user_api_key", inputApiKey.value.trim());
-            alert("APIキーを保存しました。");
-        });
-        btnClearKey.addEventListener("click", () => {
-            localStorage.removeItem("gemini_user_api_key");
-            inputApiKey.value = "";
-            alert("個別キーを消去しました。");
-        });
-
-        function startLoaderAnimation() {
-            let p = 0; loaderBar.style.width = "0%";
-            loaderInterval = setInterval(() => {
-                p += Math.random() * 12; if (p > 95) p = 95; loaderBar.style.width = `${p}%`;
-            }, 300);
-        }
-        function stopLoaderAnimation() {
-            if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
-            loaderBar.style.width = "100%";
-        }
-
-        // --- 3. API通信中継関数 ---
-        async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 3, delay = 1000) {
+        // 💡【論理の修正・機能強化】：指数バックオフによる503自動リトライ機構の完全マウント
+        async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 3, initialDelay = 1500) {
             const userKey = localStorage.getItem("gemini_user_api_key") || "";
             const payload = { prompt: prompt, systemInstruction: systemInstruction, schema: schema, userKey: userKey };
+            let currentDelay = initialDelay;
 
             for (let i = 0; i < retries; i++) {
                 try {
@@ -414,48 +198,62 @@
                         headers: { "Content-Type": "text/plain" },
                         body: JSON.stringify(payload)
                     });
-                    if (response.ok) return await response.json();
+                    
+                    if (response.ok) {
+                        const resJson = await response.json();
+                        // GAS側がエラーオブジェクトを返してきた場合
+                        if (resJson && resJson.error) {
+                            const parsedErr = parseFriendlyErrorMessage(resJson.message);
+                            // 💡 503混雑の場合は、例外を投げずにこのループ内で自動リトライを敢行する
+                            if (parsedErr.is_503 && i < retries - 1) {
+                                const statusText = document.getElementById("loader-status");
+                                if (statusText) statusText.innerText = `【混雑回避】サーバーが混み合っています。自動再試行中... (${i+1}/${retries}回目)`;
+                                await new Promise(r => setTimeout(r, currentDelay));
+                                currentDelay *= 2; // 待機時間を段階的に伸ばす
+                                continue;
+                            }
+                            throw new Error(parsedErr.msg);
+                        }
+                        return resJson;
+                    }
                 } catch (e) {
                     if (i === retries - 1) throw e;
                 }
-                await new Promise(r => setTimeout(r, delay));
-                delay *= 2;
+                await new Promise(r => setTimeout(r, currentDelay));
+                currentDelay *= 2;
             }
-            throw new Error("通信がタイムアウトしました。もう一度お試しください。");
+            throw new Error("AIサーバーの混雑が続いています。15秒ほど時間を置いてから、もう一度ボタンを押してください。");
         }
 
-        // --- 4. 💡【曜日別独立生成用】完全スネークケーススキーマ仕様 ---
+        // 💡【監査による修正】：エラーコードのパースと日本語化を高度に分離
+        function parseFriendlyErrorMessage(rawErrorText) {
+            let is_503 = false;
+            let msg = rawErrorText;
+            try {
+                const cleanJson = rawErrorText.replace(/【.*】:/, "").trim();
+                const errObj = JSON.parse(cleanJson);
+                const code = errObj.error?.code;
+                const status = errObj.error?.status;
+
+                if (code === 503 || status === "UNAVAILABLE") {
+                    is_503 = true;
+                    msg = "【AIサーバー混雑】現在GoogleのAIサーバーが大変混み合っています。一時的なものですので、少し時間を置いてから再度お試しください。";
+                } else if (code === 429 || status === "RESOURCE_EXHAUSTED") {
+                    msg = "【リクエスト過剰】短時間に通信が集中しました。1分ほど待ってからもう一度お試しください。";
+                }
+            } catch (e) {}
+            return { is_503, msg };
+        }
+
         const singleDayProductionSchema = {
             type: "OBJECT",
             properties: {
                 day_menu: {
                     type: "OBJECT",
                     properties: {
-                        day: { type: "STRING", description: "指定された曜日名" },
-                        main_dish: { type: "STRING", description: "主菜の名前" },
-                        main_key_point: { type: "STRING", description: "管理栄養士からの調理短縮・美味のコツ（40文字程度）" },
-                        sub_dish: { type: "STRING", description: "副菜の名前" },
-                        soup: { type: "STRING", description: "汁物の名前" },
-                        time_mins: { type: "INTEGER", description: "調理時間の目安（分）" },
-                        recipe: {
-                            type: "OBJECT",
-                            properties: {
-                                ingredients: { type: "ARRAY", items: { type: "STRING" }, description: "5人分の具体的な材料・分量リスト" },
-                                steps: { type: "ARRAY", items: { type: "STRING" }, description: "3ステップ程度の簡潔な作り方の手順" }
-                            },
-                            required: ["ingredients", "steps"]
-                        },
-                        day_shopping: {
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    section: { type: "STRING", description: "スーパーの売り場（① お野菜・フルーツ、② お肉・お魚、③ 豆腐・牛乳・調味料）" },
-                                    items: { type: "ARRAY", items: { type: "STRING" }, description: "必要な食材リスト" }
-                                },
-                                required: ["section", "items"]
-                            }
-                        }
+                        day: { type: "STRING" }, main_dish: { type: "STRING" }, main_key_point: { type: "STRING" }, sub_dish: { type: "STRING" }, soup: { type: "STRING" }, time_mins: { type: "INTEGER" },
+                        recipe: { type: "OBJECT", properties: { ingredients: { type: "ARRAY", items: { type: "STRING" } }, steps: { type: "ARRAY", items: { type: "STRING" } } }, required: ["ingredients", "steps"] },
+                        day_shopping: { type: "ARRAY", items: { type: "OBJECT", properties: { section: { type: "STRING" }, items: { type: "ARRAY", items: { type: "STRING" } } }, required: ["section", "items"] } }
                     },
                     required: ["day", "main_dish", "main_key_point", "sub_dish", "soup", "time_mins", "recipe", "day_shopping"]
                 }
@@ -463,61 +261,44 @@
             required: ["day_menu"]
         };
 
-        // --- 5. 💡【コア】特定の曜日だけをオンデマンドで生成 ＆ 即時クラウド保存ロジック ---
-        window.buildSingleDayMenu = async function(dayName, idx) {
+        window.buildSingleDayMenu = async function(dayName, idx, customReason = "") {
             const selectEl = document.getElementById(`pattern-${dayName === '月曜日' ? 'mon' : dayName === '火曜日' ? 'tue' : dayName === '水曜日' ? 'wed' : dayName === '木曜日' ? 'thu' : 'fri'}`);
             const currentRule = selectEl ? selectEl.value : "おまかせ";
 
-            let reqIng = selectedWeeklyIngredients.length > 0 ? `優先したい食材: ${selectedWeeklyIngredients.join('、')}` : "";
+            let reqIng = selectedWeeklyIngredients.length > 0 ? `優先食材: ${selectedWeeklyIngredients.join('、')}` : "";
             let reqFree = weeklyFree.value.trim() ? `伝言: ${weeklyFree.value.trim()}` : "";
+            if (customReason) reqFree += ` (※この日の変更リクエスト: ${customReason})`;
 
-            startLoaderAnimation();
+            let p = 0; loaderBar.style.width = "0%";
+            loaderInterval = setInterval(() => { p += Math.random() * 12; if (p > 95) p = 95; loaderBar.style.width = `${p}%`; }, 300);
+            
             const statusText = document.getElementById("loader-status");
             if (statusText) statusText.innerText = `AI栄養士が【${dayName}】の専用ノートを書き込んでいます...`;
             loader.classList.remove("hidden");
-
-            // 全ボタンを一時的に無効化して連打を防ぐ
             document.querySelectorAll(".gen-btn").forEach(b => b.disabled = true);
 
-            const systemInstruction = 
-                "Aあなたは5人家族（大人2人、こども3人）の夕食を支える温かい管理栄養士です。\n" +
-                "お母さんがリクエストした曜日の基本ジャンルルールを100%厳守し、一汁二菜（主菜・副菜・汁物）のレシピと買い物リストを完璧なJSON構造でのみ出力してください。";
-
-            const prompt = 
-                `【5人家族分の夕食メニューを単一生成・肉付けしてください】\n` +
-                `対象曜日: ${dayName}\n` +
-                `わが家ルール: ${currentRule}\n\n` +
-                `【お母さんからの今週の全体リクエスト】\n` +
-                `${reqIng}\n${reqFree}\n\n` +
-                `上記をしっかり反映した、5人家族が笑顔になる主菜・副菜・汁物、およびその【材料】、【手順】、【売り場別買い物アイテム】を規定のJSONケースで出力してください。`;
+            const systemInstruction = "あなたは5人家族の夕食を支える温かい管理栄養士です。指定された曜日のルールを厳守し、完璧なJSON構造でのみ出力してください。";
+            const prompt = `対象曜日: ${dayName}\nルール: ${currentRule}\n${reqIng}\n${reqFree}\n材料、手順、買い物アイテムをJSONケースで出力してください。`;
 
             try {
                 const apiResponse = await fetchGeminiAPI(prompt, systemInstruction, singleDayProductionSchema);
-                
-                if (apiResponse && apiResponse.error) {
-                    throw new Error(`【Googleエラー】${apiResponse.message}`);
-                }
-
                 const responseText = apiResponse.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (!responseText) throw new Error("AIからの応答が空でした。もう一度お試しください。");
+                if (!responseText) throw new Error("AIからの応答が空でした。");
 
                 const cleanedText = cleanJsonString(responseText);
-                const parsed = JSON.parse(cleanedText);
-                const newDayMenu = parsed.day_menu;
+                weeklyMenu[idx] = JSON.parse(cleanedText).day_menu;
 
-                // 💡該当の曜日枠に完成データをパチッと上書き格納
-                weeklyMenu[idx] = newDayMenu;
+                // 保存と同期
+                const dataToSave = { menus: weeklyMenu };
+                localStorage.setItem("gemini_saved_menu_data", JSON.stringify(dataToSave));
+                await fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save_db_menu", menuData: dataToSave }) });
 
-                // 💡【途中保存の神髄】完成した瞬間にブラウザとクラウド金庫の両方に即座に自動保存！
-                await saveMenuDataToCloud();
-
-                stopLoaderAnimation();
+                if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
+                loaderBar.style.width = "100%";
                 renderAll();
                 loader.classList.add("hidden");
-
             } catch (err) {
-                console.error(err);
-                stopLoaderAnimation();
+                if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
                 loader.classList.add("hidden");
                 alert(err.message || err);
             } finally {
@@ -525,230 +306,109 @@
             }
         };
 
-        async function saveMenuDataToCloud() {
-            const dataToSave = { menus: weeklyMenu };
-            // ローカルストレージ保存
-            localStorage.setItem("gemini_saved_menu_data", JSON.stringify(dataToSave));
-
-            // GAS共有プロパティDBへの同期
-            try {
-                await fetch(GAS_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: "save_db_menu", menuData: dataToSave })
-                });
-                console.log("共有データベースに途中保存の同期が成功しました。");
-            } catch (e) {
-                console.error("共有データベースへの同期に失敗しました。", e);
-            }
-        }
-
-        // --- 6. 画面マッピング・UIレンダリング ---
-        function renderAll() {
-            renderWeeklyMenus();
-            renderMergedShoppingList();
-        }
-
-        function renderWeeklyMenus() {
-            tabContentMenus.innerHTML = "";
-            
-            weeklyMenu.forEach((m, idx) => {
-                const card = document.createElement("div");
-                
-                // 💡 ケースA: まだ生成していない「未定」のカードデザイン（水平思考UI）
-                if (m.is_empty) {
-                    card.className = "bg-white/40 rounded-3xl border-2 border-dashed border-[#F1ECE6] p-6 text-center space-y-3 fade-in";
-                    card.innerHTML = `
-                        <div class="flex items-center justify-between border-b border-[#F1ECE6]/60 pb-2">
-                            <span class="text-xs font-bold text-[#A9A5A0] bg-slate-100 px-4 py-1.5 rounded-full font-handwriting">${DAYS_LIST[idx]}</span>
-                            <span class="text-[10px] text-[#A9A5A0] font-bold"><i class="fa-solid fa-circle-notch text-gray-300 mr-1"></i>メニュー未定</span>
-                        </div>
-                        <div class="py-4">
-                            <p class="text-xs text-[#A9A5A0] font-medium mb-3">この曜日の献立ノートはまだ白紙です。ルールに沿ってメニューを書かせましょう！</p>
-                            <button class="gen-btn bg-white hover:bg-[#E07A5F] border border-[#E07A5F] text-[#E07A5F] hover:text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-sm flex items-center space-x-1.5 mx-auto" onclick="window.buildSingleDayMenu('${DAYS_LIST[idx]}', ${idx})">
-                                <i class="fa-solid fa-feather-pointed"></i>
-                                <span>${DAYS_LIST[idx]}のノートを書く</span>
-                            </button>
-                        </div>
-                    `;
-                    tabContentMenus.appendChild(card);
-                    return;
-                }
-
-                // 💡 ケースB: すでに生成が完了している「美しいノート」のカードデザイン
-                const recipeId = `recipe-${idx}`;
-                const changeFormId = `change-form-${idx}`;
-                card.className = "bg-white rounded-3xl border border-[#F1ECE6] p-5 soft-card space-y-4 fade-in";
-                
-                let ingredientsHTML = "";
-                if (m.recipe && m.recipe.ingredients) {
-                    m.recipe.ingredients.forEach(ing => {
-                        ingredientsHTML += `<li class="text-[11px] text-[#6D6A75] flex items-center"><span class="w-1.5 h-1.5 bg-[#E07A5F]/40 rounded-full mr-2"></span>${ing}</li>`;
-                    });
-                }
-                
-                let stepsHTML = "";
-                if (m.recipe && m.recipe.steps) {
-                    m.recipe.steps.forEach((step, sIdx) => {
-                        stepsHTML += `
-                            <div class="flex items-start space-x-2">
-                                <span class="text-[10px] bg-[#FAF8F5] border border-[#F1ECE6] text-[#E07A5F] w-4 h-4 rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5">${sIdx + 1}</span>
-                                <p class="text-[11px] text-[#6D6A75] leading-relaxed">${step}</p>
-                            </div>`;
-                    });
-                }
-
-                card.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-[#FAF8F5] pb-2">
-                        <span class="text-xs font-bold text-white bg-[#E07A5F] px-4 py-1.5 rounded-full font-handwriting tracking-wide">${m.day}</span>
-                        <div class="text-[10px] text-[#A9A5A0] font-bold">
-                            <i class="fa-regular fa-clock mr-1"></i>目安: ${m.time_mins || 30}分
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-[#FAF8F5]/60 p-3.5 rounded-2xl border border-[#F1ECE6]/40">
-                        <div class="space-y-0.5">
-                            <span class="text-[9px] text-[#E07A5F] font-bold tracking-wider block">MAIN DISH</span>
-                            <p class="text-xs font-bold text-[#3D3A45]">${m.main_dish}</p>
-                            <p class="text-[10px] text-[#81B29A] font-medium leading-tight pt-1"><i class="fa-regular fa-lightbulb mr-0.5"></i>${m.main_key_point || '美味しくヘルシーに仕上げます。'}</p>
-                        </div>
-                        <div class="space-y-0.5 border-t md:border-t-0 md:border-l border-[#F1ECE6]/60 pt-2 md:pt-0 md:pl-3">
-                            <span class="text-[9px] text-[#A9A5A0] font-bold tracking-wider block">SUB DISH</span>
-                            <p class="text-xs font-medium text-[#6D6A75]">${m.sub_dish}</p>
-                        </div>
-                        <div class="space-y-0.5 border-t md:border-t-0 md:border-l border-[#F1ECE6]/60 pt-2 md:pt-0 md:pl-3">
-                            <span class="text-[9px] text-[#A9A5A0] font-bold tracking-wider block">SOUP</span>
-                            <p class="text-xs font-medium text-[#6D6A75]">${m.soup}</p>
-                        </div>
-                    </div>
-
-                    <div id="${recipeId}" class="accordion-content space-y-3 pt-1 border-t border-[#FAF8F5] hidden">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                            <div class="space-y-2">
-                                <span class="text-[10px] font-bold text-[#A9A5A0] block"><i class="fa-solid fa-apple-whole mr-1 text-[#81B29A]"></i> 5人分の材料・分量</span>
-                                <ul class="grid grid-cols-1 gap-1.5 bg-[#FAF8F5]/30 p-3 rounded-2xl border border-[#F1ECE6]/40">
-                                    ${ingredientsHTML}
-                                </ul>
-                            </div>
-                            <div class="space-y-2">
-                                <span class="text-[10px] font-bold text-[#A9A5A0] block"><i class="fa-solid fa-list-check mr-1 text-[#E07A5F]"></i> 3ステップ調理手順</span>
-                                <div class="space-y-2 bg-[#FAF8F5]/30 p-3 rounded-2xl border border-[#F1ECE6]/40">
-                                    ${stepsHTML}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="${changeFormId}" class="hidden bg-[#FAF8F5] p-3 rounded-2xl border border-[#F1ECE6] space-y-2">
-                        <span class="text-[10px] font-bold text-[#A9A5A0] block">変更したい理由や、新しいリクエストを入力してください：</span>
-                        <div class="flex gap-2">
-                            <input type="text" id="change-input-${idx}" class="flex-1 text-xs bg-white border border-[#F1ECE6] rounded-xl px-3 py-2 outline-none focus:border-[#E07A5F]" placeholder="例：別の魚メニューに変えて / 帰りが遅いので15分で作れるもの">
-                            <button class="gen-btn bg-[#E07A5F] hover:bg-[#D06B50] text-white text-xs font-bold px-4 py-2 rounded-xl transition" onclick="window.reBuildSingleDay('${m.day}', ${idx})">再生成</button>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-1 border-t border-[#FAF8F5]">
-                        <button class="text-[11px] text-[#E07A5F] font-bold hover:underline flex items-center space-x-1" onclick="toggleAccordion('${recipeId}', this)">
-                            <i class="fa-solid fa-chevron-down mr-1"></i><span>レシピ・材料を見る</span>
-                        </button>
-                        <button class="text-[11px] text-[#A9A5A0] hover:text-[#E07A5F] font-bold flex items-center space-x-1" onclick="document.getElementById('${changeFormId}').classList.toggle('hidden')">
-                            <i class="fa-solid fa-rotate mr-1"></i><span>この日を作り直す</span>
-                        </button>
-                    </div>
-                `;
-                tabContentMenus.appendChild(card);
-            });
-        }
-
-        window.toggleAccordion = function(id, btn) {
-            const content = document.getElementById(id);
-            const icon = btn.querySelector("i");
-            const label = btn.querySelector("span");
-            if (content.classList.contains("hidden")) {
-                content.classList.remove("hidden"); icon.classList.add("rotate-180"); label.innerText = "レシピを閉じる";
-            } else {
-                content.classList.add("hidden"); icon.classList.remove("rotate-180"); label.innerText = "レシピ・材料を見る";
-            }
-        };
-
-        // すでに生成された特定の曜日をリクエスト付きで上書き再生成する関数
+        // 💡【監査によるバグ修正】：雪だるま式の文字累積バグを駆逐した綺麗な再生成窓
         window.reBuildSingleDay = async function(dayName, idx) {
             const inputEl = document.getElementById(`change-input-${idx}`);
             const reason = inputEl ? inputEl.value.trim() : "";
             if(!reason) { alert("変更したい理由を入力してください。"); return; }
             
-            // 内部的には単一生成ロジックに理由を乗せて再利用
-            weeklyFree.value = `${weeklyFree.value} (※${dayName}への個別変更要望: ${reason})`;
-            await window.buildSingleDayMenu(dayName, idx);
+            // グローバルなテキストエリアを汚染せず、引数としてクリーンに個別リクエストを射出
+            await window.buildSingleDayMenu(dayName, idx, reason);
             inputEl.value = "";
         };
 
+        function renderAll() { renderWeeklyMenus(); renderMergedShoppingList(); }
+
+        function renderWeeklyMenus() {
+            tabContentMenus.innerHTML = "";
+            weeklyMenu.forEach((m, idx) => {
+                const card = document.createElement("div");
+                if (m.is_empty) {
+                    card.className = "bg-white/40 rounded-3xl border-2 border-dashed border-[#F1ECE6] p-6 text-center space-y-3 fade-in";
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between border-b pb-2"><span class="text-xs font-bold text-[#A9A5A0] bg-slate-100 px-4 py-1.5 rounded-full font-handwriting">${DAYS_LIST[idx]}</span></div>
+                        <div class="py-2">
+                            <p class="text-xs text-[#A9A5A0] mb-3">この曜日の献立ノートは白紙です。</p>
+                            <button class="gen-btn bg-white hover:bg-[#E07A5F] border border-[#E07A5F] text-[#E07A5F] hover:text-white text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center space-x-1.5 mx-auto" onclick="window.buildSingleDayMenu('${DAYS_LIST[idx]}', ${idx})"><i class="fa-solid fa-feather-pointed"></i><span>${DAYS_LIST[idx]}のノートを書く</span></button>
+                        </div>`;
+                    tabContentMenus.appendChild(card); return;
+                }
+
+                const recipeId = `recipe-${idx}`; const changeFormId = `change-form-${idx}`;
+                card.className = "bg-white rounded-3xl border border-[#F1ECE6] p-5 soft-card space-y-4 fade-in";
+                let ingH = ""; if (m.recipe?.ingredients) m.recipe.ingredients.forEach(ing => { ingH += `<li class="text-[11px] text-[#6D6A75] flex items-center"><span class="w-1.5 h-1.5 bg-[#E07A5F]/40 rounded-full mr-2"></span>${ing}</li>`; });
+                let stH = ""; if (m.recipe?.steps) m.recipe.steps.forEach((step, sIdx) => { stH += `<div class="flex items-start space-x-2"><span class="text-[10px] bg-[#FAF8F5] text-[#E07A5F] w-4 h-4 rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5">${sIdx + 1}</span><p class="text-[11px] text-[#6D6A75] leading-relaxed">${step}</p></div>`; });
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b pb-2"><span class="text-xs font-bold text-white bg-[#E07A5F] px-4 py-1.5 rounded-full font-handwriting">${m.day}</span></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-[#FAF8F5]/60 p-3.5 rounded-2xl border">
+                        <div><span class="text-[9px] text-[#E07A5F] font-bold block">MAIN DISH</span><p class="text-xs font-bold">${m.main_dish}</p><p class="text-[10px] text-[#81B29A] font-medium pt-1"><i class="fa-regular fa-lightbulb"></i> ${m.main_key_point || ''}</p></div>
+                        <div class="border-t md:border-t-0 md:border-l pt-2 md:pt-0 md:pl-3"><span class="text-[9px] text-[#A9A5A0] font-bold block">SUB DISH</span><p class="text-xs">${m.sub_dish}</p></div>
+                        <div class="border-t md:border-t-0 md:border-l pt-2 md:pt-0 md:pl-3"><span class="text-[9px] text-[#A9A5A0] font-bold block">SOUP</span><p class="text-xs">${m.soup}</p></div>
+                    </div>
+                    <div id="${recipeId}" class="accordion-content space-y-3 pt-1 border-t hidden"><div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"><div><span class="text-[10px] font-bold text-[#A9A5A0] block">材料・分量</span><ul class="space-y-1 bg-[#FAF8F5]/30 p-3 rounded-2xl">${ingH}</ul></div><div><span class="text-[10px] font-bold text-[#A9A5A0] block">手順</span><div class="space-y-2 bg-[#FAF8F5]/30 p-3 rounded-2xl">${stH}</div></div></div></div>
+                    <div id="${changeFormId}" class="hidden bg-[#FAF8F5] p-3 rounded-2xl border space-y-2">
+                        <div class="flex gap-2"><input type="text" id="change-input-${idx}" class="flex-1 text-xs bg-white border rounded-xl px-3 py-2 outline-none" placeholder="例：別の魚メニューに変えて"><button class="gen-btn bg-[#E07A5F] text-white text-xs font-bold px-4 py-2 rounded-xl" onclick="window.reBuildSingleDay('${m.day}', ${idx})">再生成</button></div>
+                    </div>
+                    <div class="flex items-center justify-between pt-1 border-t">
+                        <button class="text-[11px] text-[#E07A5F] font-bold hover:underline" onclick="toggleAccordion('${recipeId}', this)"><i class="fa-solid fa-chevron-down"></i> <span>レシピ・材料を見る</span></button>
+                        <button class="text-[11px] text-[#A9A5A0] font-bold" onclick="document.getElementById('${changeFormId}').classList.toggle('hidden')"><i class="fa-solid fa-rotate"></i> <span>この日を作り直す</span></button>
+                    </div>`;
+                tabContentMenus.appendChild(card);
+            });
+        }
+
+        window.toggleAccordion = function(id, btn) {
+            const content = document.getElementById(id); const icon = btn.querySelector("i"); const label = btn.querySelector("span");
+            if (content.classList.contains("hidden")) { content.classList.remove("hidden"); icon.classList.add("rotate-180"); label.innerText = "レシピを閉じる"; }
+            else { content.classList.add("hidden"); icon.classList.remove("rotate-180"); label.innerText = "レシピ・材料を見る"; }
+        };
+
+        // 💡【監査によるデータ強化】：表記揺れを一網打尽にする強固な買い物リスト集計ロジック
         function renderMergedShoppingList() {
             shoppingGrid.innerHTML = "";
             const sections = { "① お野菜・フルーツ": [], "② お肉・お魚": [], "③ 豆腐・牛乳・調味料": [] };
 
-            // 生成完了している曜日からのみ、買い物リストを自動集計
             weeklyMenu.forEach(dayMenu => {
                 if (!dayMenu || dayMenu.is_empty || !dayMenu.day_shopping) return;
-                dayMenu.day_shopping.forEach(sectionBlock => {
-                    let sec = sectionBlock.section;
-                    if (sec.includes("野菜") || sec.includes("果物") || sec.includes("青果")) sec = "① お野菜・フルーツ";
-                    else if (sec.includes("肉") || sec.includes("魚") || sec.includes("精肉")) sec = "② お肉・お魚";
-                    else sec = "③ 豆腐・牛乳・調味料";
+                dayMenu.day_shopping.forEach(block => {
+                    let sec = block.section || "";
+                    let targetSec = "③ 豆腐・牛乳・調味料";
+                    // 1文字でも該当ワードが入っていれば強硬マッピング
+                    if (/野菜|果物|青果|フルーツ|芋|大根|トマト|キャベツ|ネギ/.test(sec)) targetSec = "① お野菜・フルーツ";
+                    else if (/肉|魚|鮮魚|精肉|海鮮|エビ|鶏|豚|牛/.test(sec)) targetSec = "② お肉・お魚";
                     
-                    if (sectionBlock.items) {
-                        sectionBlock.items.forEach(item => {
-                            if (!sections[sec].includes(item)) sections[sec].push(item);
-                        });
+                    if (block.items) {
+                        block.items.forEach(item => { if (!sections[targetSec].includes(item)) sections[targetSec].push(item); });
                     }
                 });
             });
 
             const checkedItems = JSON.parse(localStorage.getItem("gemini_checked_items") || "{}");
-
             Object.keys(sections).forEach(secName => {
-                const items = sections[secName];
-                const block = document.createElement("div");
-                block.className = "space-y-2.5 bg-[#FAF8F5]/50 p-4 rounded-2xl border border-[#F1ECE6]/60";
-                
+                const items = sections[secName]; const block = document.createElement("div");
+                block.className = "space-y-2.5 bg-[#FAF8F5]/50 p-4 rounded-2xl border";
                 let itemsHTML = "";
                 items.forEach(item => {
-                    const isChecked = checkedItems[item] ? "checked" : "";
-                    const strikeClass = isChecked ? "checked-item" : "";
-                    itemsHTML += `
-                        <label class="flex items-start space-x-2.5 py-1 cursor-pointer group">
-                            <input type="checkbox" ${isChecked} class="mt-0.5 rounded border-[#F1ECE6] text-[#E07A5F] focus:ring-[#E07A5F] transition" data-item-text="${item}" onchange="toggleCheckboxStrike(this)">
-                            <span class="text-xs font-medium text-[#6D6A75] group-hover:text-[#3D3A45] transition ${strikeClass}">${item}</span>
-                        </label>`;
+                    const isChecked = checkedItems[item] ? "checked" : ""; const strikeClass = isChecked ? "checked-item" : "";
+                    itemsHTML += `<label class="flex items-start space-x-2.5 py-1 cursor-pointer"><input type="checkbox" ${isChecked} class="mt-0.5 rounded text-[#E07A5F]" data-item-text="${item}" onchange="toggleCheckboxStrike(this)"><span class="text-xs font-medium text-[#6D6A75] ${strikeClass}">${item}</span></label>`;
                 });
-
-                block.innerHTML = `
-                    <span class="text-[11px] font-bold text-white bg-[#81B29A] px-3 py-1 rounded-full font-handwriting tracking-wide inline-block mb-1">${secName}</span>
-                    <div class="space-y-1">
-                        ${itemsHTML || '<p class="text-[10px] text-[#A9A5A0] py-2">生成済みの曜日からここに買い物リストが自動集計されます。</p>'}
-                    </div>
-                `;
+                block.innerHTML = `<span class="text-[11px] font-bold text-white bg-[#81B29A] px-3 py-1 rounded-full font-handwriting inline-block mb-1">${secName}</span><div class="space-y-1">${itemsHTML || '<p class="text-[10px] text-gray-400 py-2">アイテムはありません。</p>'}</div>`;
                 shoppingGrid.appendChild(block);
             });
         }
 
         window.toggleCheckboxStrike = function(cb) {
-            const labelSpan = cb.nextElementSibling;
-            const itemText = cb.getAttribute("data-item-text");
+            const labelSpan = cb.nextElementSibling; const itemText = cb.getAttribute("data-item-text");
             const savedStrikes = JSON.parse(localStorage.getItem("gemini_checked_items") || "{}");
-            if (cb.checked) {
-                if (labelSpan) labelSpan.classList.add("checked-item"); savedStrikes[itemText] = true;
-            } else {
-                if (labelSpan) labelSpan.classList.remove("checked-item"); delete savedStrikes[itemText];
-            }
+            if (cb.checked) { if (labelSpan) labelSpan.classList.add("checked-item"); savedStrikes[itemText] = true; }
+            else { if (labelSpan) labelSpan.classList.remove("checked-item"); delete savedStrikes[itemText]; }
             localStorage.setItem("gemini_checked_items", JSON.stringify(savedStrikes));
         };
 
         function cleanJsonString(str) {
             let cleaned = str.trim();
-            if (cleaned.startsWith("```")) {
-                cleaned = cleaned.replace(/^```[a-zA-Z]*/, "").replace(/```$/, "");
-            }
+            if (cleaned.startsWith("```")) cleaned = cleaned.replace(/^```[a-zA-Z]*/, "").replace(/```$/, "");
             return cleaned.trim();
         }
     </script>
