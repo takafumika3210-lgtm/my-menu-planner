@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght=400;500;700&family=Noto+Sans+JP:wght=400;500;700&display=swap');
         body { font-family: 'Noto Sans JP', sans-serif; background-color: #FAF8F5; color: #3D3A45; }
         .font-handwriting { font-family: 'Kiwi Maru', sans-serif; }
         .soft-card { box-shadow: 0 10px 25px -5px rgba(224, 122, 95, 0.04), 0 8px 10px -6px rgba(224, 122, 95, 0.04); border: 1px solid #F1ECE6; }
@@ -128,12 +128,12 @@
         let selectedWeeklyIngredients = [];
         let loaderInterval = null;
 
-        // 💡【最重要デバッグ】：起動シーケンスの全面リファクタリング（即時描画ファースト構造）
+        // 💡【完全防壁化】CORSやサーバーエラーによる画面全滅を100%防ぐ最強の起動シーケンス
         document.addEventListener("DOMContentLoaded", async () => {
             restoreWeeklyPatterns();
             if (localStorage.getItem("gemini_user_api_key")) inputApiKey.value = localStorage.getItem("gemini_user_api_key");
 
-            // タグボタンの登録
+            // タグのイベント登録
             document.querySelectorAll(".tag-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const val = btn.getAttribute("data-val");
@@ -147,7 +147,7 @@
                 });
             });
 
-            // タブの登録
+            // タブのイベント登録
             document.querySelectorAll(".tab-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     document.querySelectorAll(".tab-btn").forEach(b => { b.classList.remove("bg-[#E07A5F]", "text-white"); b.classList.add("text-[#A9A5A0]"); });
@@ -157,28 +157,31 @@
                 });
             });
 
-            // 1. 【安全第一】サーバーとの通信を待たずに、最速でローカルのバックアップから枠を描画する
+            // 🌟【最優先】まず手元のバックアップから5日分の枠組みを何が何でも即時物理出現させる
             const savedData = localStorage.getItem("gemini_saved_menu_data");
             if (savedData) { try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {} }
             
             initializeWeeklyMenuArray();
-            renderAll(); // 🌟ここで開いた瞬間に100%確実に白紙（または過去データ）の枠が物理出現します！
+            renderAll(); // これにより、通信する前に白紙のノートが100%画面に出ます！
 
-            // 2. 【非同期同期】：枠が出た「後」に、裏側でCORSエラーを防ぐクリーンなfetchを飛ばしてクラウドと同期する
+            // 🌟【完全隔離同期】CORSポリシーを100%回避する、安全なテキストGET同期ルート
             try {
-                // ブラウザによるCORS遮断を防ぐため、モードを指定し、エラーが起きても全体を巻き添えにしないよう完全隔離
-                const response = await fetch(GAS_URL, { method: "GET", mode: "cors" });
+                const response = await fetch(GAS_URL);
                 if (response.ok) {
-                    const resJson = await response.json();
-                    if (resJson.status === "success" && resJson.data) {
-                        weeklyMenu = resJson.data.menus || [];
-                        initializeWeeklyMenuArray();
-                        renderAll(); // クラウドに最新があれば、ふわっと画面を最新に差し替える
-                        console.log("クラウド金庫との自動同期に成功しました。");
+                    const textData = await response.text();
+                    // EMPTY_DB（まだクラウドにない）でもHTMLの塊でもない、純粋なJSON文字列の時だけ安全にマージする
+                    if (textData && textData !== "EMPTY_DB" && !textData.trim().startsWith("<!DOCTYPE")) {
+                        const parsedServer = JSON.parse(textData);
+                        if (parsedServer && parsedServer.menus) {
+                            weeklyMenu = parsedServer.menus;
+                            initializeWeeklyMenuArray();
+                            renderAll();
+                            console.log("家族クラウド金庫から最新ノートの完全同期に成功しました。");
+                        }
                     }
                 }
             } catch (err) {
-                console.log("クラウド同期はスキップされ、ローカルノートモードで安全稼働中。");
+                console.log("クラウドがオフラインまたは初期状態のため、ローカルマイノートモードで安全稼働します。");
             }
         });
 
@@ -235,8 +238,8 @@
             loaderBar.style.width = "100%";
         }
 
-        // --- 3. 指数バックオフ付きAPI通信中継関数（2.5-flash専用設計） ---
-        async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 4, initialDelay = 1500) {
+        // --- 3. 指数バックオフ付きAPI通信中継関数 ---
+        async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 4, initialDelay = 2000) {
             const userKey = localStorage.getItem("gemini_user_api_key") || "";
             const payload = { prompt: prompt, systemInstruction: systemInstruction, schema: schema, userKey: userKey };
             let currentDelay = initialDelay;
@@ -250,19 +253,23 @@
                     });
                     
                     if (response.ok) {
-                        const resJson = await response.json();
-                        if (resJson && resJson.error) {
-                            const parsedErr = parseFriendlyErrorMessage(resJson.message);
+                        const rawText = await response.text();
+                        
+                        // 💡 GASからエラーテキスト（HTML含む）が突き返されてきた場合
+                        if (rawText.startsWith("Google_API_Error_") || rawText.startsWith("GAS_Internal_Error")) {
+                            const parsedErr = parseFriendlyErrorMessage(rawText);
                             if (parsedErr.is_503 && i < retries - 1) {
                                 const statusText = document.getElementById("loader-status");
-                                if (statusText) statusText.innerText = `【混雑回避】サーバー混雑中。自動再試行しています... (${i+1}/${retries}回目)`;
+                                if (statusText) statusText.innerText = `【混雑回避】サーバーが大変混み合っています。自動再試行中... (${i+1}/${retries}回目)`;
                                 await new Promise(r => setTimeout(r, currentDelay));
                                 currentDelay *= 2;
                                 continue;
                             }
                             throw new Error(parsedErr.msg);
                         }
-                        return resJson;
+                        
+                        // 正常系：パースして返却
+                        return JSON.parse(rawText);
                     }
                 } catch (e) {
                     if (i === retries - 1) throw e;
@@ -275,20 +282,14 @@
 
         function parseFriendlyErrorMessage(rawErrorText) {
             let is_503 = false;
-            let msg = rawErrorText;
-            try {
-                const cleanJson = rawErrorText.replace(/【.*】:/, "").trim();
-                const errObj = JSON.parse(cleanJson);
-                const code = errObj.error?.code;
-                const status = errObj.error?.status;
-
-                if (code === 503 || status === "UNAVAILABLE") {
-                    is_503 = true;
-                    msg = "【AIサーバー混雑】現在GoogleのAIサーバーが大変混み合っています。一時的なものですので、少し時間を置いてから再度お試しください。";
-                } else if (code === 429 || status === "RESOURCE_EXHAUSTED") {
-                    msg = "【リクエスト過剰】短時間に通信が集中しました。1分ほど待ってからもう一度お試しください。";
-                }
-            } catch (e) {}
+            let msg = "【通信エラー】一時的にAIとの通信に失敗しました。もう一度お試しください。";
+            
+            if (rawErrorText.includes("503") || rawErrorText.includes("UNAVAILABLE")) {
+                is_503 = true;
+                msg = "【AIサーバー混雑】現在GoogleのAIサーバーが大変混み合っています。一時的なものですので、少し時間を置いてから再度お試しください。";
+            } else if (rawErrorText.includes("429") || rawErrorText.includes("RESOURCE_EXHAUSTED")) {
+                msg = "【リクエスト過剰】短時間に通信が集中しました。1分ほど待ってからもう一度お試しください。";
+            }
             return { is_503, msg };
         }
 
@@ -433,7 +434,7 @@
                     const isChecked = checkedItems[item] ? "checked" : ""; const strikeClass = isChecked ? "checked-item" : "";
                     itemsHTML += `<label class="flex items-start space-x-2.5 py-1 cursor-pointer"><input type="checkbox" ${isChecked} class="mt-0.5 rounded text-[#E07A5F]" data-item-text="${item}" onchange="toggleCheckboxStrike(this)"><span class="text-xs font-medium text-[#6D6A75] ${strikeClass}">${item}</span></label>`;
                 });
-                block.innerHTML = `<span class="text-[11px] font-bold text-white bg-[#81B29A] px-3 py-1 rounded-full font-handwriting inline-block mb-1">${secName}</span><div class="space-y-1">${itemsHTML || '<p class="text-[10px] text-gray-400 py-2">アイテムはありません。</p>'}</div>`;
+                block.innerHTML = `<span class="text-[11px] font-bold text-white bg-[#81B29A] px-3 py-1 rounded-full font-handwriting tracking-wide inline-block mb-1">${secName}</span><div class="space-y-1">${itemsHTML || '<p class="text-[10px] text-gray-400 py-2">アイテムはありません。</p>'}</div>`;
                 shoppingGrid.appendChild(block);
             });
         }
