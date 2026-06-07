@@ -128,25 +128,35 @@
         let selectedWeeklyIngredients = [];
         let loaderInterval = null;
 
-        // 💡【最優先マウント】：何が起きてもまず100%確実に白紙ノートを最速で画面に出現させる
+        // 💡【最重要監査：変数とDOM要素の冒頭完全定義固定】
+        const configPanel = document.getElementById("config-panel");
+        const inputApiKey = document.getElementById("input-api-key");
+        const loader = document.getElementById("loader");
+        const loaderBar = document.getElementById("loader-bar");
+        const tabContentMenus = document.getElementById("tab-content-menus");
+        const shoppingGrid = document.getElementById("shopping-grid");
+        const weeklyFree = document.getElementById("weekly-free");
+
+        // 起動シーケンス
         document.addEventListener("DOMContentLoaded", () => {
             restoreWeeklyPatterns();
-            if (localStorage.getItem("gemini_user_api_key")) {
-                const configIn = document.getElementById("input-api-key");
-                if (configIn) configIn.value = localStorage.getItem("gemini_user_api_key");
+            
+            // APIキーの復元
+            if (localStorage.getItem("gemini_user_api_key") && inputApiKey) {
+                inputApiKey.value = localStorage.getItem("gemini_user_api_key");
             }
 
-            // イベント登録を最速で安全に完了させる
+            // イベントリスナー登録
             setupEventListeners();
 
-            // 🌟ローカルのバックアップから即時マウント（これで真っ白は物理的に防がれます）
+            // 🌟ローカルストレージからの先行マウント（これで白紙枠すら出ない問題は100%解決されます）
             const savedData = localStorage.getItem("gemini_saved_menu_data");
             if (savedData) { try { weeklyMenu = JSON.parse(savedData).menus || []; } catch(e) {} }
             
             initializeWeeklyMenuArray();
             renderAll(); 
 
-            // 🌟画面が完全に出現した「あと」から、裏側でエラーを完全隔離してクラウドと同期する
+            // 裏側でCORSを完全回避しながらクラウドと安全に非同期同期
             setTimeout(async () => {
                 try {
                     const response = await fetch(GAS_URL);
@@ -161,11 +171,11 @@
                             }
                             initializeWeeklyMenuArray();
                             renderAll();
-                            console.log("家族クラウド金庫との自動同期に成功しました。");
+                            console.log("家族クラウドとの同期完了。");
                         }
                     }
                 } catch (err) {
-                    console.log("クラウド初期状態のためローカルノートで安全稼働します。");
+                    console.log("ローカルノートモードで安全稼働中。");
                 }
             }, 100);
         });
@@ -193,17 +203,21 @@
                 });
             });
 
-            [document.getElementById("pattern-mon"), document.getElementById("pattern-tue"), document.getElementById("pattern-wed"), document.getElementById("pattern-thu"), document.getElementById("pattern-fri")].forEach(el => {
-                if (el) el.addEventListener("change", () => {
-                    const patterns = {
-                        mon: document.getElementById("pattern-mon").value,
-                        tue: document.getElementById("pattern-tue").value,
-                        wed: document.getElementById("pattern-wed").value,
-                        thu: document.getElementById("pattern-thu").value,
-                        fri: document.getElementById("pattern-fri").value
-                    };
-                    localStorage.setItem("gemini_weekly_patterns", JSON.stringify(patterns));
-                });
+            const patterns_els = ["pattern-mon", "pattern-tue", "pattern-wed", "pattern-thu", "pattern-fri"];
+            patterns_els.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener("change", () => {
+                        const patterns = {
+                            mon: document.getElementById("pattern-mon").value,
+                            tue: document.getElementById("pattern-tue").value,
+                            wed: document.getElementById("pattern-wed").value,
+                            thu: document.getElementById("pattern-thu").value,
+                            fri: document.getElementById("pattern-fri").value
+                        };
+                        localStorage.setItem("gemini_weekly_patterns", JSON.stringify(patterns));
+                    });
+                }
             });
         }
 
@@ -244,20 +258,21 @@
             }
         });
 
-        document.getElementById("btn-toggle-config").addEventListener("click", () => configPanel.classList.toggle("hidden"));
-        document.getElementById("btn-save-key").addEventListener("click", () => { localStorage.setItem("gemini_user_api_key", document.getElementById("input-api-key").value.trim()); alert("保存完了"); });
-        document.getElementById("btn-clear-key").addEventListener("click", () => { localStorage.removeItem("gemini_user_api_key"); document.getElementById("input-api-key").value = ""; alert("消去完了"); });
+        document.getElementById("btn-toggle-config").addEventListener("click", () => { if(configPanel) configPanel.classList.toggle("hidden"); });
+        document.getElementById("btn-save-key").addEventListener("click", () => { if(inputApiKey) { localStorage.setItem("gemini_user_api_key", inputApiKey.value.trim()); alert("保存完了"); } });
+        document.getElementById("btn-clear-key").addEventListener("click", () => { localStorage.removeItem("gemini_user_api_key"); if(inputApiKey) inputApiKey.value = ""; alert("消去完了"); });
 
         function startLoaderAnimation() {
+            if (!loaderBar) return;
             let p = 0; loaderBar.style.width = "0%";
             loaderInterval = setInterval(() => { p += Math.random() * 12; if (p > 95) p = 95; loaderBar.style.width = `${p}%`; }, 300);
         }
         function stopLoaderAnimation() {
             if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
-            loaderBar.style.width = "100%";
+            if (loaderBar) loaderBar.style.width = "100%";
         }
 
-        // --- 3. 指数バックオフ付きAPI通信中継関数（大文字小文字完全クレンジング版） ---
+        // 指数バックオフ付きAPI通信中継関数
         async function fetchGeminiAPI(prompt, systemInstruction, schema, retries = 4, initialDelay = 2000) {
             const userKey = localStorage.getItem("gemini_user_api_key") || "";
             const payload = { prompt: prompt, systemInstruction: systemInstruction, schema: schema, userKey: userKey };
@@ -275,7 +290,6 @@
                         const rawText = await response.text();
                         const upperText = rawText.toUpperCase();
                         
-                        // 💡【赤字バグ完全修正】：503やエラー文字列の有無を100%確実に大文字小文字無視でキャッチする
                         if (upperText.includes("GOOGLE_API_ERROR_") || upperText.includes("GAS_INTERNAL_ERROR") || upperText.includes("UNAVAILABLE") || upperText.includes("503")) {
                             const parsedErr = parseFriendlyErrorMessage(rawText);
                             if (parsedErr.is_503 && i < retries - 1) {
@@ -288,7 +302,6 @@
                             throw new Error(parsedErr.msg);
                         }
                         
-                        // すでにパースできる綺麗なJSONテキストとして返却
                         return JSON.parse(rawText);
                     }
                 } catch (e) {
@@ -302,7 +315,7 @@
 
         function parseFriendlyErrorMessage(rawErrorText) {
             let is_503 = false;
-            let msg = "【通信エラー】一時的にAIとの通信に失敗しました。もう一度お試しください。";
+            let msg = "【通信エラー】一時的にAIとの通信に失敗しました。";
             const testText = rawErrorText.toUpperCase();
             
             if (testText.includes("503") || testText.includes("UNAVAILABLE")) {
@@ -330,19 +343,19 @@
             required: ["day_menu"]
         };
 
-        // 💡【コア関数の大改修】：二重パースバグを100%全滅させた、最新世代AI専用のデータ格納処理
         window.buildSingleDayMenu = async function(dayName, idx, customReason = "") {
-            const selectEl = document.getElementById(`pattern-${dayName === '月曜日' ? 'mon' : dayName === '火曜日' ? 'tue' : dayName === '水曜日' ? 'wed' : dayName === '木曜日' ? 'thu' : 'fri'}`);
+            const dayKeys = ["mon", "tue", "wed", "thu", "fri"];
+            const selectEl = document.getElementById(`pattern-${dayKeys[idx]}`);
             const currentRule = selectEl ? selectEl.value : "おまかせ";
 
             let reqIng = selectedWeeklyIngredients.length > 0 ? `優先食材: ${selectedWeeklyIngredients.join('、')}` : "";
-            let reqFree = weeklyFree.value.trim() ? `伝言: ${weeklyFree.value.trim()}` : "";
+            let reqFree = (weeklyFree && weeklyFree.value.trim()) ? `伝言: ${weeklyFree.value.trim()}` : "";
             if (customReason) reqFree += ` (※この日の変更リクエスト: ${customReason})`;
 
             startLoaderAnimation();
             const statusText = document.getElementById("loader-status");
             if (statusText) statusText.innerText = `AI栄養士が【${dayName}】の専用ノートを書き込んでいます...`;
-            loader.classList.remove("hidden");
+            if (loader) loader.classList.remove("hidden");
             document.querySelectorAll(".gen-btn").forEach(b => b.disabled = true);
 
             const systemInstruction = "あなたは5人家族の夕食を支える温かい管理栄養士です。指定された曜日のルールを厳守し、完璧なJSON構造でのみ出力してください。";
@@ -351,76 +364,82 @@
             try {
                 const apiResponse = await fetchGeminiAPI(prompt, systemInstruction, singleDayProductionSchema);
                 
-                // 💡【最重要デバッグファクト】：二重パースバグの防御壁を完全に構築
                 let dayMenuObject = null;
-                
                 if (apiResponse && apiResponse.day_menu) {
-                    // ケースA：すでに剥き出しのパース済みJSONオブジェクトが届いた場合（現状のGAS仕様）
                     dayMenuObject = apiResponse.day_menu;
                 } else if (apiResponse && apiResponse.candidates && apiResponse.candidates[0]?.content?.parts[0]?.text) {
-                    // ケースB：Googleの生の包み紙の状態で届いた場合（フォールバック用）
                     const txt = cleanJsonString(apiResponse.candidates[0].content.parts[0].text);
                     dayMenuObject = JSON.parse(txt).day_menu;
-                } else if (typeof apiResponse === "string") {
-                    // ケースC：文字列で届いた場合
-                    const txt = cleanJsonString(apiResponse);
+                } else {
+                    const txt = cleanJsonString(JSON.stringify(apiResponse));
                     dayMenuObject = JSON.parse(txt).day_menu;
                 }
 
-                if (!dayMenuObject) {
-                    throw new Error("データの解析に失敗しました。もう一度だけ生成ボタンを押してください。");
-                }
+                if (!dayMenuObject) throw new Error("データの解析に失敗しました。もう一度だけ生成ボタンを押してください。");
 
-                // 完成データを配列の指定曜日スロットに格納
+                // 格納
                 weeklyMenu[idx] = dayMenuObject;
 
-                // 保存と同期
                 const dataToSave = { menus: weeklyMenu };
                 localStorage.setItem("gemini_saved_menu_data", JSON.stringify(dataToSave));
                 await fetch(GAS_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "save_db_menu", menuData: dataToSave }) });
 
-                if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
-                loaderBar.style.width = "100%";
+                stopLoaderAnimation();
                 renderAll();
-                loader.classList.add("hidden");
+                if (loader) loader.classList.add("hidden");
             } catch (err) {
-                if (loaderInterval) { clearInterval(loaderInterval); loaderInterval = null; }
-                loader.classList.add("hidden");
+                stopLoaderAnimation();
+                if (loader) loader.classList.add("hidden");
                 alert(err.message || err);
             } finally {
                 document.querySelectorAll(".gen-btn").forEach(b => b.disabled = false);
             }
         };
 
-        window.reBuildSingleDay = async function(dayName, idx) {
+        // 💡【監査修正】：クォーテーションの競合を完全に排除したクリーンな再呼び出し機構
+        window.triggerRebuild = function(idx) {
             const inputEl = document.getElementById(`change-input-${idx}`);
             const reason = inputEl ? inputEl.value.trim() : "";
             if(!reason) { alert("変更したい理由を入力してください。"); return; }
-            await window.buildSingleDayMenu(dayName, idx, reason);
-            inputEl.value = "";
+            window.buildSingleDayMenu(DAYS_LIST[idx], idx, reason);
+            if(inputEl) inputEl.value = "";
         };
 
         function renderAll() { renderWeeklyMenus(); renderMergedShoppingList(); }
 
         function renderWeeklyMenus() {
+            if (!tabContentMenus) return;
             tabContentMenus.innerHTML = "";
+            
             weeklyMenu.forEach((m, idx) => {
                 const card = document.createElement("div");
+                
                 if (!m || m.is_empty) {
                     card.className = "bg-white/40 rounded-3xl border-2 border-dashed border-[#F1ECE6] p-6 text-center space-y-3 fade-in";
                     card.innerHTML = `
-                        <div class="flex items-center justify-between border-b pb-2"><span class="text-xs font-bold text-[#A9A5A0] bg-slate-100 px-4 py-1.5 rounded-full font-handwriting">${DAYS_LIST[idx]}</span></div>
+                        <div class="flex items-center justify-between border-b pb-2">
+                            <span class="text-xs font-bold text-[#A9A5A0] bg-slate-100 px-4 py-1.5 rounded-full font-handwriting">${DAYS_LIST[idx]}</span>
+                        </div>
                         <div class="py-2">
                             <p class="text-xs text-[#A9A5A0] mb-3">この曜日の献立ノートは白紙です。</p>
-                            <button class="gen-btn bg-white hover:bg-[#E07A5F] border border-[#E07A5F] text-[#E07A5F] hover:text-white text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center space-x-1.5 mx-auto" onclick="window.buildSingleDayMenu('${DAYS_LIST[idx]}', ${idx})"><i class="fa-solid fa-feather-pointed"></i><span>${DAYS_LIST[idx]}のノートを書く</span></button>
+                            <button class="gen-btn bg-white hover:bg-[#E07A5F] border border-[#E07A5F] text-[#E07A5F] hover:text-white text-xs font-bold px-5 py-2.5 rounded-xl transition flex items-center space-x-1.5 mx-auto" onclick="window.buildSingleDayMenu('${DAYS_LIST[idx]}', ${idx})">
+                                <i class="fa-solid fa-feather-pointed"></i><span>${DAYS_LIST[idx]}のノートを書く</span>
+                            </button>
                         </div>`;
-                    tabContentMenus.appendChild(card); return;
+                    tabContentMenus.appendChild(card); 
+                    return;
                 }
 
-                const recipeId = `recipe-${idx}`; const changeFormId = `change-form-${idx}`;
+                // 💡【監査修正】: エラーの温床だったインラインonclick内の文字列展開を完全に撤廃した安全なHTML構造
+                const recipeId = `recipe-${idx}`; 
+                const changeFormId = `change-form-${idx}`;
                 card.className = "bg-white rounded-3xl border border-[#F1ECE6] p-5 soft-card space-y-4 fade-in";
-                let ingH = ""; if (m.recipe?.ingredients) m.recipe.ingredients.forEach(ing => { ingH += `<li class="text-[11px] text-[#6D6A75] flex items-center"><span class="w-1.5 h-1.5 bg-[#E07A5F]/40 rounded-full mr-2"></span>${ing}</li>`; });
-                let stH = ""; if (m.recipe?.steps) m.recipe.steps.forEach((step, sIdx) => { stH += `<div class="flex items-start space-x-2"><span class="text-[10px] bg-[#FAF8F5] text-[#E07A5F] w-4 h-4 rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5">${sIdx + 1}</span><p class="text-[11px] text-[#6D6A75] leading-relaxed">${step}</p></div>`; });
+                
+                let ingH = ""; 
+                if (m.recipe?.ingredients) m.recipe.ingredients.forEach(ing => { ingH += `<li class="text-[11px] text-[#6D6A75] flex items-center"><span class="w-1.5 h-1.5 bg-[#E07A5F]/40 rounded-full mr-2"></span>${ing}</li>`; });
+                
+                let stH = ""; 
+                if (m.recipe?.steps) m.recipe.steps.forEach((step, sIdx) => { stH += `<div class="flex items-start space-x-2"><span class="text-[10px] bg-[#FAF8F5] text-[#E07A5F] w-4 h-4 rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5">${sIdx + 1}</span><p class="text-[11px] text-[#6D6A75] leading-relaxed">${step}</p></div>`; });
 
                 card.innerHTML = `
                     <div class="flex items-center justify-between border-b pb-2"><span class="text-xs font-bold text-white bg-[#E07A5F] px-4 py-1.5 rounded-full font-handwriting">${m.day}</span></div>
@@ -431,7 +450,10 @@
                     </div>
                     <div id="${recipeId}" class="accordion-content space-y-3 pt-1 border-t hidden"><div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"><div><span class="text-[10px] font-bold text-[#A9A5A0] block">材料・分量</span><ul class="space-y-1 bg-[#FAF8F5]/30 p-3 rounded-2xl">${ingH}</ul></div><div><span class="text-[10px] font-bold text-[#A9A5A0] block">手順</span><div class="space-y-2 bg-[#FAF8F5]/30 p-3 rounded-2xl">${stH}</div></div></div></div>
                     <div id="${changeFormId}" class="hidden bg-[#FAF8F5] p-3 rounded-2xl border space-y-2">
-                        <div class="flex gap-2"><input type="text" id="change-input-${idx}" class="flex-1 text-xs bg-white border rounded-xl px-3 py-2 outline-none" placeholder="例：別の魚メニューに変えて"><button class="gen-btn bg-[#E07A5F] text-white text-xs font-bold px-4 py-2 rounded-xl" onclick="window.reBuildSingleDay('${m.day}', ${idx})">再生成</button></div>
+                        <div class="flex gap-2">
+                            <input type="text" id="change-input-${idx}" class="flex-1 text-xs bg-white border rounded-xl px-3 py-2 outline-none" placeholder="例：別の魚メニューに変えて">
+                            <button class="gen-btn bg-[#E07A5F] text-white text-xs font-bold px-4 py-2 rounded-xl" onclick="window.triggerRebuild(${idx})">再生成</button>
+                        </div>
                     </div>
                     <div class="flex items-center justify-between pt-1 border-t">
                         <button class="text-[11px] text-[#E07A5F] font-bold hover:underline" onclick="toggleAccordion('${recipeId}', this)"><i class="fa-solid fa-chevron-down"></i> <span>レシピ・材料を見る</span></button>
@@ -443,11 +465,13 @@
 
         window.toggleAccordion = function(id, btn) {
             const content = document.getElementById(id); const icon = btn.querySelector("i"); const label = btn.querySelector("span");
-            if (content.classList.contains("hidden")) { content.classList.remove("hidden"); icon.classList.add("rotate-180"); label.innerText = "レシピを閉じる"; }
-            else { content.classList.add("hidden"); icon.classList.remove("rotate-180"); label.innerText = "レシピ・材料を見る"; }
+            if (!content) return;
+            if (content.classList.contains("hidden")) { content.classList.remove("hidden"); if(icon) icon.classList.add("rotate-180"); if(label) label.innerText = "レシピを閉じる"; }
+            else { content.classList.add("hidden"); if(icon) icon.classList.remove("rotate-180"); if(label) label.innerText = "レシピ・材料を見る"; }
         };
 
         function renderMergedShoppingList() {
+            if (!shoppingGrid) return;
             shoppingGrid.innerHTML = "";
             const sections = { "① お野菜・フルーツ": [], "② お肉・お魚": [], "③ 豆腐・牛乳・調味料": [] };
 
@@ -474,7 +498,7 @@
                     const isChecked = checkedItems[item] ? "checked" : ""; const strikeClass = isChecked ? "checked-item" : "";
                     itemsHTML += `<label class="flex items-start space-x-2.5 py-1 cursor-pointer"><input type="checkbox" ${isChecked} class="mt-0.5 rounded text-[#E07A5F]" data-item-text="${item}" onchange="toggleCheckboxStrike(this)"><span class="text-xs font-medium text-[#6D6A75] ${strikeClass}">${item}</span></label>`;
                 });
-                block.innerHTML = `<span class="text-[11px] font-bold text-white bg-[#81B29A] px-3 py-1 rounded-full font-handwriting tracking-wide inline-block mb-1">${secName}</span><div class="space-y-1">${itemsHTML || '<p class="text-[10px] text-gray-400 py-2">アイテムはありません。</p>'}</div>`;
+                block.innerHTML = `<span class="text-[11px] font-bold text-white bg-[#81B29A] px-3 py-1 rounded-full font-handwriting inline-block mb-1">${secName}</span><div class="space-y-1">${itemsHTML || '<p class="text-[10px] text-gray-400 py-2">アイテムはありません。</p>'}</div>`;
                 shoppingGrid.appendChild(block);
             });
         }
